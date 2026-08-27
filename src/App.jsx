@@ -173,10 +173,8 @@ function App() {
       const response = await fetchSheetData();
       setRawData(response.data);
       setLastUpdated(response.lastUpdated);
-
-      // 기본 선택값을 'All' (전체) 로 설정합니다.
-      setSelectedVersion('All');
-    } catch {
+    } catch (err) {
+      console.error("데이터 로드 상세 에러:", err);
       setError('데이터를 불러오는데 실패했습니다. 네트워크 상태나 스프레드시트 공유 설정을 확인해주세요.');
     } finally {
       setIsLoading(false);
