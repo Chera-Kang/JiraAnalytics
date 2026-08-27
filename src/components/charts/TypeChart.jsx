@@ -26,7 +26,7 @@ const CustomTooltip = ({ active, payload }) => {
  */
 const TypeChart = ({ data }) => {
   return (
-    <div className="glass-panel flex-col" style={{ height: '300px', padding: '16px' }}>
+    <div className="glass-panel flex-col" style={{ height: '340px', padding: '16px 20px' }}>
       {/* 차트 헤더 */}
       <h4 style={{ margin: '0 0 16px 0', textAlign: 'center', color: 'var(--text-primary)', fontWeight: 600 }}>
         이슈 유형
@@ -42,6 +42,9 @@ const TypeChart = ({ data }) => {
             outerRadius={80}  /* 바깥 반경 */
             paddingAngle={2.5} /* 기존 5 -> 2.5로 조각 간 벌어지는 간격 절반 감소 */
             dataKey="value"
+            animationBegin={0}
+            animationDuration={250}
+            animationEasing="ease-out"
           >
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

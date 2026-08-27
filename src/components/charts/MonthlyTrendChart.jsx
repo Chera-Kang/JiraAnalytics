@@ -12,8 +12,7 @@ import {
 } from 'recharts';
 
 /**
- * [커스텀 툴팁 컴포넌트]
- * 마우스를 차트 바/라인 위에 올렸을 때 나타나는 팝업 정보창입니다.
+ * [월별 이슈 트렌드 커스텀 툴팁]
  */
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -25,10 +24,7 @@ const CustomTooltip = ({ active, payload, label }) => {
         padding: '12px',
         boxShadow: 'var(--shadow-md)'
       }}>
-        {/* X축 범주 이름 (예: 24.10월) */}
         <p style={{ margin: '0 0 8px 0', fontWeight: 600, color: 'var(--text-primary)' }}>{label}</p>
-        
-        {/* 생성, 해결, 잔여 수치 목록 */}
         {payload.map((entry, index) => (
           <div key={`item-${index}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: entry.color }} />
@@ -48,11 +44,9 @@ const CustomTooltip = ({ active, payload, label }) => {
  * - 생성/해결 이슈: 막대 그래프 (Bar)
  * - 잔여 이슈: 꺾은선 그래프 (Line)
  */
-const JiraComboChart = ({ data }) => {
+const MonthlyTrendChart = ({ data }) => {
   return (
-    /* 단일 카드 블록 (glass-panel) 안에 타이틀과 차트를 함께 감쌉니다 */
     <div className="glass-panel" style={{ width: '100%', height: '400px', padding: '20px 24px', display: 'flex', flexDirection: 'column' }}>
-      {/* 차트 상단 제목 */}
       <h3 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', color: 'var(--text-primary)', fontWeight: 600 }}>
         월별 이슈 트렌드
       </h3>
@@ -64,7 +58,6 @@ const JiraComboChart = ({ data }) => {
               data={data}
               margin={{ top: 10, right: 20, bottom: 0, left: 0 }}
             >
-              {/* 바 그래프의 색상 그라데이션 정의 */}
               <defs>
                 <linearGradient id="colorCreated" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#dc2626" stopOpacity={0.9}/>
@@ -76,10 +69,8 @@ const JiraComboChart = ({ data }) => {
                 </linearGradient>
               </defs>
               
-              {/* 배경 격자선 */}
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.7} vertical={false} />
               
-              {/* X축 (연.월) */}
               <XAxis 
                 dataKey="name" 
                 stroke="var(--text-muted)" 
@@ -89,7 +80,6 @@ const JiraComboChart = ({ data }) => {
                 dy={10}
               />
               
-              {/* 왼쪽 Y축 (생성/해결 수량) */}
               <YAxis 
                 yAxisId="left"
                 stroke="var(--text-muted)" 
@@ -99,7 +89,6 @@ const JiraComboChart = ({ data }) => {
                 dx={-10}
               />
               
-              {/* 오른쪽 Y축 (잔여 수량) */}
               <YAxis 
                 yAxisId="right" 
                 orientation="right" 
@@ -110,15 +99,32 @@ const JiraComboChart = ({ data }) => {
                 dx={10}
               />
               
-              {/* 툴팁 및 범례 */}
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.03)' }} />
               <Legend wrapperStyle={{ paddingTop: '10px' }} />
               
-              {/* 생성이슈 / 해결이슈 막대 (Bar) */}
-              <Bar yAxisId="left" dataKey="created" name="생성이슈 (Created)" fill="url(#colorCreated)" radius={[4, 4, 0, 0]} barSize={24} />
-              <Bar yAxisId="left" dataKey="resolved" name="해결이슈 (Resolved)" fill="url(#colorResolved)" radius={[4, 4, 0, 0]} barSize={24} />
+              <Bar 
+                yAxisId="left" 
+                dataKey="created" 
+                name="생성이슈 (Created)" 
+                fill="url(#colorCreated)" 
+                radius={[4, 4, 0, 0]} 
+                barSize={24} 
+                animationBegin={0}
+                animationDuration={250}
+                animationEasing="ease-out"
+              />
+              <Bar 
+                yAxisId="left" 
+                dataKey="resolved" 
+                name="해결이슈 (Resolved)" 
+                fill="url(#colorResolved)" 
+                radius={[4, 4, 0, 0]} 
+                barSize={24} 
+                animationBegin={0}
+                animationDuration={250}
+                animationEasing="ease-out"
+              />
               
-              {/* 잔여이슈 꺾은선 (Line): type="linear"로 변경하여 데이터 포인트 사이를 명확한 직선으로 연결 */}
               <Line 
                 yAxisId="right"
                 type="linear" 
@@ -128,6 +134,9 @@ const JiraComboChart = ({ data }) => {
                 strokeWidth={3}
                 dot={{ r: 4, strokeWidth: 2, fill: 'var(--bg-secondary)' }}
                 activeDot={{ r: 6, strokeWidth: 0, fill: '#2563eb' }}
+                animationBegin={0}
+                animationDuration={250}
+                animationEasing="ease-out"
               />
             </ComposedChart>
           </ResponsiveContainer>
@@ -141,4 +150,4 @@ const JiraComboChart = ({ data }) => {
   );
 };
 
-export default JiraComboChart;
+export default MonthlyTrendChart;

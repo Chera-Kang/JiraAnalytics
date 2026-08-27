@@ -23,11 +23,11 @@ const CustomTooltip = ({ active, payload, label }) => {
  */
 const AssigneeCountChart = ({ data }) => {
   const count = data ? data.length : 0;
-  // 소수 인원 시 막대가 돋보이도록 두께만 동적 조절 (카드 높이는 390px 고정)
-  const dynamicBarSize = count <= 3 ? 28 : count <= 6 ? 22 : 18;
+  // 소수 인원 시 막대가 돋보이도록 두께만 동적 조절
+  const dynamicBarSize = count <= 3 ? 26 : count <= 6 ? 20 : 16;
 
   return (
-    <div className="glass-panel flex-col" style={{ height: '390px', padding: '16px 20px' }}>
+    <div className="glass-panel flex-col" style={{ height: '340px', padding: '16px 20px' }}>
       {/* 차트 제목 */}
       <h4 style={{ margin: '0 0 16px 0', textAlign: 'center', color: 'var(--text-primary)', fontWeight: 600 }}>
         담당자 별 이슈 개수
@@ -55,7 +55,15 @@ const AssigneeCountChart = ({ data }) => {
           
           {/* 툴팁 및 바 (동적 barSize 적용) */}
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.03)' }} />
-          <Bar dataKey="value" fill="#2563eb" radius={[0, 4, 4, 0]} barSize={dynamicBarSize} />
+          <Bar 
+            dataKey="value" 
+            fill="#2563eb" 
+            radius={[0, 4, 4, 0]} 
+            barSize={dynamicBarSize} 
+            animationBegin={0}
+            animationDuration={250}
+            animationEasing="ease-out"
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>

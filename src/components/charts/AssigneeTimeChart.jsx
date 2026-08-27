@@ -55,7 +55,15 @@ const AssigneeTimeChart = ({ data }) => {
           
           {/* 툴팁 및 바 (동적 barSize 적용) */}
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.03)' }} />
-          <Bar dataKey="value" fill="#059669" radius={[0, 4, 4, 0]} barSize={dynamicBarSize} />
+          <Bar 
+            dataKey="value" 
+            fill="#059669" 
+            radius={[0, 4, 4, 0]} 
+            barSize={dynamicBarSize} 
+            animationBegin={0}
+            animationDuration={250}
+            animationEasing="ease-out"
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>

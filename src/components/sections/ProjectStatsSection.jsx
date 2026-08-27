@@ -1,7 +1,13 @@
 import React, { useMemo } from 'react';
-import JiraComboChart from './JiraComboChart';
+import MonthlyTrendChart from '../charts/MonthlyTrendChart';
 
-const GlobalStatsSection = ({ globalStats, globalYear, setGlobalYear, availableYears }) => {
+/**
+ * [프로젝트 통계 구획 컴포넌트]
+ * - 상단 연도 필터
+ * - 핵심 KPI 요약 카드 (생성 / 해결 / 잔여)
+ * - 월별 이슈 트렌드 콤보 차트
+ */
+const ProjectStatsSection = ({ globalStats, globalYear, setGlobalYear, availableYears }) => {
   // globalStats: [{ year: "2024", month: "10", created: 4, resolved: 0, remaining: 4 }, ...]
 
   const chartData = useMemo(() => {
@@ -14,7 +20,6 @@ const GlobalStatsSection = ({ globalStats, globalYear, setGlobalYear, availableY
 
     // Map to chart format
     return filteredStats.map(stat => ({
-      // "2024-10" or just "10월" if globalYear is selected
       name: globalYear === 'All' ? `${stat.year.slice(-2)}.${stat.month}` : `${stat.month}월`,
       created: stat.created,
       resolved: stat.resolved,
@@ -28,9 +33,6 @@ const GlobalStatsSection = ({ globalStats, globalYear, setGlobalYear, availableY
     
     const totalCreated = chartData.reduce((sum, item) => sum + item.created, 0);
     const totalResolved = chartData.reduce((sum, item) => sum + item.resolved, 0);
-    
-    // 마지막 달의 잔여 이슈를 총 잔여 이슈로 표기하거나, 단순 합계가 아닌 현재 시점의 남은 값
-    // spreadsheet 로직 상 가장 마지막 행의 remaining 값을 쓰면 될 듯 합니다.
     const currentRemaining = chartData[chartData.length - 1]?.remaining || 0;
     
     return {
@@ -45,16 +47,7 @@ const GlobalStatsSection = ({ globalStats, globalYear, setGlobalYear, availableY
     <section className="flex-col gap-4 animate-fade-in" style={{ animationDelay: '0.2s' }}>
       <div className="flex-row justify-between w-full">
         <h2 style={{ fontSize: '1.4rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          전체 프로젝트 통계
-          <span style={{ 
-            fontSize: '0.8rem', 
-            background: 'rgba(59, 130, 246, 0.2)', 
-            color: 'var(--accent-primary)',
-            padding: '2px 8px', 
-            borderRadius: '12px' 
-          }}>
-            Global
-          </span>
+          프로젝트 통계
         </h2>
         
         {/* Year Filter */}
@@ -98,11 +91,11 @@ const GlobalStatsSection = ({ globalStats, globalYear, setGlobalYear, availableY
 
         {/* Main Chart */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <JiraComboChart data={chartData} />
+          <MonthlyTrendChart data={chartData} />
         </div>
       </div>
     </section>
   );
 };
 
-export default GlobalStatsSection;
+export default ProjectStatsSection;

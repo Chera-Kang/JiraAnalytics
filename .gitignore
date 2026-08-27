@@ -18,6 +18,8 @@ build
 credentials*.json
 token*.json
 client_secret*.json
+.clasp.json
+.clasprc.json
 
 # Logs
 logs

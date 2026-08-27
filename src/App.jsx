@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import Header from './components/Header';
-import GlobalStatsSection from './components/GlobalStatsSection';
-import DetailedStatsSection from './components/DetailedStatsSection';
-import NextRoadmapSection from './components/NextRoadmapSection';
+import Header from './components/common/Header';
+import MainPage from './pages/MainPage';
+import DetailedStatsPage from './pages/DetailedStatsPage';
+import MemberStatsPage from './pages/MemberStatsPage';
+import RoadmapPage from './pages/RoadmapPage';
 
 const SHEET_ID = '1C_sTWWr-n6B1rRcajcFHAAbH-WTxT1vLXDrwDjwM5n4';
 
@@ -30,49 +31,34 @@ const fetchGvizSheet = async (sheetName) => {
  */
 const fetchSheetData = async () => {
   try {
-    // 병렬로 시트 데이터 요청 (raw_data, query2, query3)
-    const [rawDataTable, query2Table, query3Table] = await Promise.all([
+    // 병렬로 시트 데이터 요청 (raw_data, query_fixversion)
+    const [rawDataTable, queryFixVersionTable] = await Promise.all([
       fetchGvizSheet('raw_data'),
-      fetchGvizSheet('query2'),
-      fetchGvizSheet('query3')
+      fetchGvizSheet('query_fixversion')
     ]);
 
-    // 1. Last Updated 시간 파싱 (raw_data M1)
+    // 1. Last Updated 시간 파싱 (raw_data 컬럼 0 라벨 또는 전체 텍스트에서 추출)
     let lastUpdated = null;
     if (rawDataTable) {
-      const headerStr = rawDataTable.cols?.[12]?.label || '';
-      const cellStr = rawDataTable.rows?.[0]?.c?.[12]?.v || rawDataTable.rows?.[0]?.c?.[12]?.f || '';
+      const headerStr = rawDataTable.cols?.[0]?.label || '';
+      const cellStr = rawDataTable.rows?.[0]?.c?.[0]?.v || '';
       const fullText = `${headerStr} ${cellStr}`;
-      
+
       const match = fullText.match(/(\d{4}[-./]\d{2}[-./]\d{2}\s+\d{2}:\d{2})/);
       if (match) {
         lastUpdated = match[1];
       }
     }
 
-    // 2. 버전 정보 파싱 (query2)
-    const versions = query2Table.rows.map(row => ({
+    // 2. 버전 정보 파싱 (query_fixversion 시트: 0=버전명, 2=시작일, 3=배포일, 4=일수)
+    const versions = queryFixVersionTable.rows.map(row => ({
       name: row.c[0]?.v || '',
-      start: row.c[1]?.f || row.c[1]?.v || '',
-      end: row.c[2]?.f || row.c[2]?.v || '',
-      workDays: Number(row.c[3]?.v) || 0
+      code: row.c[1]?.v || '',
+      start: row.c[2]?.f || row.c[2]?.v || '',
+      end: row.c[3]?.f || row.c[3]?.v || '',
+      workDays: Number(row.c[4]?.v) || 0,
+      description: row.c[5]?.v || ''
     })).filter(v => v.name);
-
-    // 3. 글로벌 통계 파싱 (query3 G~K열, 인덱스 6~10)
-    const globalStats = query3Table.rows.map(row => {
-      const year = row.c[6]?.f || row.c[6]?.v?.toString();
-      const monthRaw = row.c[7]?.f || row.c[7]?.v?.toString(); // "10" 또는 "10월"
-
-      if (!year || !monthRaw) return null;
-
-      return {
-        year: year,
-        month: monthRaw.replace('월', '').padStart(2, '0'),
-        created: Number(row.c[8]?.v) || 0,
-        resolved: Number(row.c[9]?.v) || 0,
-        remaining: Number(row.c[10]?.v) || 0
-      };
-    }).filter(Boolean); // null 제거
 
     // 날짜 파싱 헬퍼 함수
     const parseGvizDate = (cell) => {
@@ -88,34 +74,75 @@ const fetchSheetData = async () => {
       return null;
     };
 
-    // 이슈 처리 소요 일수 계산 헬퍼 함수 (Date 2 - Date 1)
-    const calcWorkDays = (d1, d2) => {
-      if (!d1 || !d2) return null;
-      const diffTime = d2.getTime() - d1.getTime();
-      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-      return Math.max(1, diffDays + 1);
-    };
-
-    // 4. 이슈 데이터 파싱 (raw_data 기준 전체 데이터 직접 파싱)
+    // 3. 이슈 데이터 파싱 (raw_data 기준 전체 데이터 직접 파싱)
     const issues = rawDataTable.rows.map(row => {
       const key = row.c[0]?.v;
       if (!key || !key.toString().startsWith('PPLW')) return null;
 
-      const d1 = parseGvizDate(row.c[9]);
-      const d2 = parseGvizDate(row.c[10]);
+      const createdDate = parseGvizDate(row.c[9]);
+      const d1 = parseGvizDate(row.c[10]);
+      const d2 = parseGvizDate(row.c[11]) || parseGvizDate(row.c[13]); // date2 또는 date4
+
+      let resolutionTimeDays = null;
+      if (d1 && d2) {
+        const diffTime = d2.getTime() - d1.getTime();
+        resolutionTimeDays = Math.max(1, Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1);
+      }
 
       return {
         id: key,
-        fixVersion: row.c[1]?.v || '미지정',
-        assignee: row.c[2]?.v || '미지정',
-        priority: row.c[3]?.v || 'None',
-        type: row.c[4]?.v || 'None',
-        status: row.c[5]?.v || 'None',
-        resolution: row.c[6]?.v || 'None',
-        created: row.c[8]?.f || row.c[8]?.v?.toString() || '',
-        resolutionTimeDays: calcWorkDays(d1, d2)
+        title: row.c[1]?.v || '',
+        fixVersion: row.c[2]?.v || '미지정',
+        assignee: row.c[3]?.v || '미지정',
+        priority: row.c[4]?.v || 'None',
+        type: row.c[5]?.v || 'None',
+        status: row.c[6]?.v || 'None',
+        resolution: row.c[7]?.v || 'None',
+        reporter: row.c[8]?.v || '',
+        created: row.c[9]?.f || row.c[9]?.v?.toString() || '',
+        createdDate: createdDate,
+        resolvedDate: d2 || (row.c[6]?.v === '종료' ? createdDate : null),
+        date1: row.c[10]?.f || row.c[10]?.v || '',
+        date2: row.c[11]?.f || row.c[11]?.v || '',
+        date3: row.c[12]?.f || row.c[12]?.v || '',
+        date4: row.c[13]?.f || row.c[13]?.v || '',
+        reopenCounter: Number(row.c[14]?.v) || 0,
+        resolutionTimeDays: resolutionTimeDays
       };
     }).filter(Boolean);
+
+    // 4. 프론트엔드 실시간 글로벌 통계 집계 (월별 생성/해결/잔여 이슈)
+    const monthsMap = {};
+    issues.forEach(issue => {
+      if (issue.createdDate) {
+        const y = issue.createdDate.getFullYear().toString();
+        const m = String(issue.createdDate.getMonth() + 1).padStart(2, '0');
+        const ym = `${y}-${m}`;
+        if (!monthsMap[ym]) monthsMap[ym] = { year: y, month: m, created: 0, resolved: 0 };
+        monthsMap[ym].created += 1;
+      }
+      if (issue.status === '종료' && issue.resolvedDate) {
+        const y = issue.resolvedDate.getFullYear().toString();
+        const m = String(issue.resolvedDate.getMonth() + 1).padStart(2, '0');
+        const ym = `${y}-${m}`;
+        if (!monthsMap[ym]) monthsMap[ym] = { year: y, month: m, created: 0, resolved: 0 };
+        monthsMap[ym].resolved += 1;
+      }
+    });
+
+    const sortedKeys = Object.keys(monthsMap).sort();
+    let cumulativeRemaining = 0;
+    const globalStats = sortedKeys.map(k => {
+      const item = monthsMap[k];
+      cumulativeRemaining += (item.created - item.resolved);
+      return {
+        year: item.year,
+        month: item.month,
+        created: item.created,
+        resolved: item.resolved,
+        remaining: Math.max(0, cumulativeRemaining)
+      };
+    });
 
     return {
       data: { issues, versions, globalStats },
@@ -193,7 +220,7 @@ function App() {
             animation: 'spin 1s linear infinite'
           }} />
           <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
-          <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>구글 시트에서 데이터를 불러오는 중입니다...</span>
+          <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Analyzing Data</span>
         </div>
       </div>
     );
@@ -220,30 +247,38 @@ function App() {
         onNavigate={setCurrentView}
       />
 
-      {currentView === 'dashboard' ? (
-        <>
-          {/* Global Stats Section */}
-          <GlobalStatsSection
-            globalStats={rawData.globalStats}
-            globalYear={globalYear}
-            setGlobalYear={setGlobalYear}
-            availableYears={availableYears}
-          />
+      {currentView === 'dashboard' && (
+        <MainPage
+          globalStats={rawData.globalStats}
+          globalYear={globalYear}
+          setGlobalYear={setGlobalYear}
+          availableYears={availableYears}
+          issues={rawData.issues}
+          versions={rawData.versions}
+          selectedVersion={selectedVersion}
+          setSelectedVersion={setSelectedVersion}
+          onNavigate={setCurrentView}
+        />
+      )}
 
-          <div style={{ width: '100%', height: '1px', background: 'var(--border-color)', margin: '1rem 0' }} />
+      {(currentView === 'detailedStats' || currentView === 'detailedStatsMore') && (
+        <DetailedStatsPage
+          issues={rawData.issues}
+          versions={rawData.versions}
+          onNavigate={setCurrentView}
+        />
+      )}
 
-          {/* Detailed Stats Section */}
-          <DetailedStatsSection
-            issues={rawData.issues}
-            versions={rawData.versions}
-            selectedVersion={selectedVersion}
-            setSelectedVersion={setSelectedVersion}
-            availableYears={availableYears}
-          />
-        </>
-      ) : (
-        /* Next Roadmap Section */
-        <NextRoadmapSection />
+      {currentView === 'memberStats' && (
+        <MemberStatsPage
+          issues={rawData.issues}
+          versions={rawData.versions}
+          onNavigate={setCurrentView}
+        />
+      )}
+
+      {currentView === 'next' && (
+        <RoadmapPage />
       )}
     </div>
   );

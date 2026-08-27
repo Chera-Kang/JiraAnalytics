@@ -1,6 +1,12 @@
 import React from 'react';
 import { LayoutDashboard, RefreshCw, Clock, ArrowRight } from 'lucide-react';
 
+/**
+ * [글로벌 상단 헤더 컴포넌트]
+ * - 대시보드 로고 및 홈 이동
+ * - 최종 동기화 시간 표출
+ * - 차세대 로드맵(Next) / 대시보드 전환 버튼
+ */
 const Header = ({ lastUpdated, isSyncing: _isSyncing, onSync, currentView = 'dashboard', onNavigate }) => {
   // Format the date for display (년월일시분 까지 표기, 초 제외)
   let formattedDate = 'Unknown';
@@ -45,7 +51,7 @@ const Header = ({ lastUpdated, isSyncing: _isSyncing, onSync, currentView = 'das
             Jira Analytics
           </h1>
           <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            Real-time performance and issue tracking dashboard
+            실시간 지표 분석 및 이슈 트래킹 대시보드
           </p>
         </div>
       </div>
@@ -64,10 +70,10 @@ const Header = ({ lastUpdated, isSyncing: _isSyncing, onSync, currentView = 'das
           </div>
         </div>
 
-        {/* Sync Button (Disabled for now) */}
+        {/* Sync Button */}
         <button 
           onClick={onSync}
-          disabled={true} // 항상 비활성화
+          disabled={true}
           style={{
             background: 'var(--bg-secondary)',
             color: 'var(--text-primary)',
@@ -79,7 +85,7 @@ const Header = ({ lastUpdated, isSyncing: _isSyncing, onSync, currentView = 'das
             alignItems: 'center',
             gap: '8px',
             transition: 'all 0.2s ease',
-            opacity: 0.5, // 비활성화 느낌을 주기 위해 불투명도 낮춤
+            opacity: 0.5,
             boxShadow: 'none'
           }}
         >
