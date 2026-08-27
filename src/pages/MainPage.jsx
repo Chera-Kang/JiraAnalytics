@@ -16,7 +16,7 @@ const MainPage = ({
   onNavigate
 }) => {
   return (
-    <div className="flex-col gap-8 w-full animate-fade-in">
+    <div className="flex-col w-full animate-fade-in" style={{ gap: '3.5rem' }}>
       {/* 1. 전체 프로젝트 통계 섹션 */}
       <ProjectStatsSection
         globalStats={globalStats}
@@ -24,8 +24,6 @@ const MainPage = ({
         setGlobalYear={setGlobalYear}
         availableYears={availableYears}
       />
-
-      <div style={{ width: '100%', height: '1px', background: 'var(--border-color)', margin: '4px 0' }} />
 
       {/* 2. 세부 통계 섹션 (글로벌 연도와 자동 동기화) */}
       <DetailedStatsSection

@@ -161,13 +161,7 @@ const fetchSheetData = async () => {
 function App() {
   const [rawData, setRawData] = useState({ issues: [], versions: [], globalStats: [] });
   const [lastUpdated, setLastUpdated] = useState(null);
-
-  // 뷰 전환 상태 ('dashboard' | 'next')
-  const [currentView, setCurrentView] = useState('dashboard');
-
   const [globalYear, setGlobalYear] = useState('All');
-  const [selectedVersion, setSelectedVersion] = useState('');
-
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState(null);
@@ -187,6 +181,42 @@ function App() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // URL 해시(#) 또는 쿼리에서 초기 view 추출 ('dashboard' | 'detailedStats' | 'memberStats' | 'next')
+  const getViewFromUrl = () => {
+    const hash = window.location.hash.replace('#', '');
+    if (['dashboard', 'detailedStats', 'memberStats', 'next'].includes(hash)) {
+      return hash;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get('view');
+    if (['dashboard', 'detailedStats', 'memberStats', 'next'].includes(viewParam)) {
+      return viewParam;
+    }
+    return 'dashboard';
+  };
+
+  const [currentView, setCurrentView] = useState(getViewFromUrl);
+
+  // 브라우저 뒤로가기 / 앞으로가기 (popstate) 이벤트 리스너
+  useEffect(() => {
+    const handlePopState = (event) => {
+      const view = event.state?.view || getViewFromUrl();
+      setCurrentView(view);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // 페이지 이동 함수 (Browser History에 상태 기록)
+  const handleNavigate = (view) => {
+    if (view === currentView) return;
+    setCurrentView(view);
+    const newUrl = view === 'dashboard' ? window.location.pathname : `#${view}`;
+    window.history.pushState({ view }, '', newUrl);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -224,7 +254,7 @@ function App() {
             animation: 'spin 1s linear infinite'
           }} />
           <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
-          <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Analyzing Data</span>
+          <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Data Analyzing</span>
         </div>
       </div>
     );
@@ -242,13 +272,13 @@ function App() {
   }
 
   return (
-    <div className="app-container" style={{ gap: '3rem' }}>
+    <div className="app-container" style={{ gap: '2.5rem' }}>
       <Header
         lastUpdated={lastUpdated}
         isSyncing={isSyncing}
         onSync={handleSync}
         currentView={currentView}
-        onNavigate={setCurrentView}
+        onNavigate={handleNavigate}
       />
 
       {currentView === 'dashboard' && (
@@ -258,10 +288,7 @@ function App() {
           setGlobalYear={setGlobalYear}
           availableYears={availableYears}
           issues={rawData.issues}
-          versions={rawData.versions}
-          selectedVersion={selectedVersion}
-          setSelectedVersion={setSelectedVersion}
-          onNavigate={setCurrentView}
+          onNavigate={handleNavigate}
         />
       )}
 
@@ -269,7 +296,7 @@ function App() {
         <DetailedStatsPage
           issues={rawData.issues}
           versions={rawData.versions}
-          onNavigate={setCurrentView}
+          onNavigate={handleNavigate}
         />
       )}
 
@@ -277,7 +304,7 @@ function App() {
         <MemberStatsPage
           issues={rawData.issues}
           versions={rawData.versions}
-          onNavigate={setCurrentView}
+          onNavigate={handleNavigate}
         />
       )}
 

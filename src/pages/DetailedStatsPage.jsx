@@ -1,10 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import {
-  ArrowLeft,
   Filter,
   Search,
   RotateCcw,
-  Sparkles,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -21,32 +19,36 @@ const ITEMS_PER_PAGE = 20;
 /**
  * 드롭다운 셀렉터 공통 스타일
  */
-const selectStyle = {
+const getSelectStyle = (disabled = false) => ({
   appearance: 'none',
-  background: 'var(--bg-secondary)',
-  color: 'var(--text-primary)',
+  background: disabled ? 'var(--bg-tertiary)' : 'var(--bg-secondary)',
+  color: disabled ? 'var(--text-muted)' : 'var(--text-primary)',
   border: '1px solid var(--glass-border)',
   borderRadius: '8px',
   padding: '8px 32px 8px 12px',
   fontSize: '0.88rem',
   outline: 'none',
-  cursor: 'pointer',
-  transition: 'border-color 0.2s',
+  cursor: disabled ? 'not-allowed' : 'pointer',
+  opacity: disabled ? 0.55 : 1,
+  transition: 'all 0.2s',
   backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
   backgroundRepeat: 'no-repeat',
   backgroundPosition: 'right 10px center',
   backgroundSize: '14px',
-  minWidth: '130px'
-};
+  minWidth: '130px',
+  width: '100%'
+});
 
 /**
  * [세부 통계 심층 분석 & 이슈 탐색기 페이지 (DetailedStatsPage)]
- * - 다차원 복합 필터 (연도, 버전, 담당자, 유형, 상태, 검색어)
- * - 상단 실시간 반응형 차트 3종 (접기/펼치기 지원)
- * - 하단 고정 헤더 + 내부 스크롤 반응형 이슈 데이터 테이블 (20개 단위 페이지네이션)
- * - 행 클릭 시 상세 정보 모달(IssueDetailModal) 팝업
+ * - 브라우저 뒤로가기 지원 (브라우저 네이티브 네비게이션)
+ * - 연도/수정버전 상호 배타적 비활성화 (Mutual Exclusivity)
+ * - 검색 필터 2단 배치 (1단: 5개 드롭다운 + 초기화, 2단: 전체너비 검색창 + 우측 건수)
+ * - 차트 영역 우측 상단 플로팅 접기/펼치기 버튼
+ * - 이슈 테이블 헤더 정리 및 20개 단위 페이지네이션
+ * - 이슈 클릭 시 포털 모달(IssueDetailModal) 팝업
  */
-const DetailedStatsPage = ({ onNavigate, issues = [], versions = [] }) => {
+const DetailedStatsPage = ({ issues = [], versions = [] }) => {
   // 필터 상태
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedVersion, setSelectedVersion] = useState('All');
@@ -106,17 +108,17 @@ const DetailedStatsPage = ({ onNavigate, issues = [], versions = [] }) => {
   // 다차원 필터링 적용된 이슈 목록
   const filteredIssues = useMemo(() => {
     return issues.filter(issue => {
-      // 1. 연도 필터
-      if (selectedYear !== 'All') {
+      // 1. 연도 필터 (수정버전이 'All'일 때만 연도 필터 유효)
+      if (selectedYear !== 'All' && selectedVersion === 'All') {
         const shortYear = selectedYear.slice(-2);
         const matchYear = (issue.created && issue.created.slice(0, 4) === selectedYear) ||
                           (issue.fixVersion && issue.fixVersion.startsWith(shortYear));
         if (!matchYear) return false;
       }
 
-      // 2. 버전 필터
-      if (selectedVersion !== 'All' && issue.fixVersion !== selectedVersion) {
-        return false;
+      // 2. 버전 필터 (연도가 'All'일 때만 버전 필터 유효)
+      if (selectedVersion !== 'All' && selectedYear === 'All') {
+        if (issue.fixVersion !== selectedVersion) return false;
       }
 
       // 3. 담당자 필터
@@ -212,118 +214,30 @@ const DetailedStatsPage = ({ onNavigate, issues = [], versions = [] }) => {
     return { bg: 'rgba(100, 116, 139, 0.15)', text: '#94a3b8' };
   };
 
+  // 연도/수정버전 상호 배타성 플래그
+  const isYearDisabled = selectedVersion !== 'All';
+  const isVersionDisabled = selectedYear !== 'All';
+
   return (
-    <div style={{ width: '100%', maxWidth: '1240px', margin: '0 auto' }} className="flex-col gap-6 animate-fade-in">
-      {/* 1. 상단 네비게이션 & 타이틀 */}
-      <div className="flex-row justify-between align-center" style={{ flexWrap: 'wrap', gap: '16px' }}>
-        <div className="flex-col">
-          <div className="flex-row gap-2 align-center" style={{ marginBottom: '6px' }}>
-            <button
-              onClick={() => onNavigate && onNavigate('dashboard')}
-              style={{
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '8px',
-                padding: '6px 14px',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s ease',
-                boxShadow: 'var(--shadow-sm)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateX(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateX(0)';
-              }}
-            >
-              <ArrowLeft size={16} />
-              <span>대시보드로 돌아가기</span>
-            </button>
-
-            <span style={{
-              fontSize: '0.78rem',
-              fontWeight: 600,
-              background: 'rgba(37, 99, 235, 0.1)',
-              color: 'var(--accent-primary)',
-              padding: '4px 10px',
-              borderRadius: '12px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px'
-            }}>
-              <Sparkles size={13} /> DETAILED ANALYTICS & ISSUE EXPLORER
-            </span>
-          </div>
-
-          <h2 style={{ margin: '4px 0 0 0', fontSize: '1.65rem', fontWeight: 700, letterSpacing: '-0.3px' }}>
-            세부 통계 심층 분석 & 이슈 탐색기
-          </h2>
-          <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            스프린트 버전 및 담당자별 다차원 필터링과 전체 이슈 실시간 검색·상세 조회를 제공합니다.
-          </p>
-        </div>
-
-        {/* 차트 접기/펼치기 토글 버튼 */}
-        <button
-          onClick={() => setIsChartsOpen(!isChartsOpen)}
-          style={{
-            background: 'var(--bg-secondary)',
-            color: 'var(--text-primary)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '8px',
-            padding: '8px 14px',
-            fontSize: '0.85rem',
-            fontWeight: 500,
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <Layers size={16} color="var(--accent-primary)" />
-          <span>{isChartsOpen ? '통계 차트 접기' : '통계 차트 펼치기'}</span>
-          {isChartsOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </button>
+    <div className="flex-col gap-6 w-full animate-fade-in">
+      {/* 1. 상단 타이틀 영역 (간소화) */}
+      <div className="flex-col gap-1">
+        <h2 style={{ margin: 0, fontSize: '1.65rem', fontWeight: 700, letterSpacing: '-0.3px' }}>
+          세부 통계 심층 분석
+        </h2>
+        <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.92rem' }}>
+          스프린트 버전 및 담당자별 다차원 필터링과 전체 이슈 실시간 검색·상세 조회를 제공합니다.
+        </p>
       </div>
 
-      {/* 2. 다차원 복합 필터 바 (Glass Panel) */}
-      <div className="glass-panel flex-col gap-3" style={{ padding: '16px 20px', borderRadius: '12px' }}>
-        <div className="flex-row justify-between align-center" style={{ flexWrap: 'wrap', gap: '12px' }}>
-          <div className="flex-row gap-2 align-center">
-            <Filter size={18} color="var(--accent-primary)" />
-            <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>다차원 복합 필터</strong>
-          </div>
-
-          {/* 검색창 & 초기화 버튼 */}
-          <div className="flex-row gap-2 align-center" style={{ flex: 1, maxWidth: '440px', justifyContent: 'flex-end' }}>
-            <div style={{ position: 'relative', width: '100%' }}>
-              <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
-              <input
-                type="text"
-                placeholder="이슈 키(PPLW-...) 또는 제목 검색..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                style={{
-                  width: '100%',
-                  background: 'var(--bg-secondary)',
-                  color: 'var(--text-primary)',
-                  border: '1px solid var(--glass-border)',
-                  borderRadius: '8px',
-                  padding: '7px 12px 7px 32px',
-                  fontSize: '0.85rem',
-                  outline: 'none'
-                }}
-              />
+      {/* 2. 다차원 복합 필터 바 (1단: 드롭다운+초기화, 2단: 전체너비 검색창+우측 건수) */}
+      <div className="glass-panel flex-col gap-4" style={{ padding: '18px 22px', borderRadius: '12px' }}>
+        {/* 1단: 필터 타이틀 & 5개 드롭다운 & 초기화 버튼 */}
+        <div className="flex-col gap-3 w-full">
+          <div className="flex-row justify-between align-center">
+            <div className="flex-row gap-2 align-center">
+              <Filter size={17} color="var(--accent-primary)" />
+              <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>다차원 복합 필터</strong>
             </div>
 
             <button
@@ -332,14 +246,14 @@ const DetailedStatsPage = ({ onNavigate, issues = [], versions = [] }) => {
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
                 borderRadius: '8px',
-                padding: '7px 12px',
+                padding: '6px 12px',
                 fontSize: '0.82rem',
                 fontWeight: 500,
                 color: 'var(--text-muted)',
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '5px',
                 whiteSpace: 'nowrap',
                 transition: 'all 0.2s'
               }}
@@ -349,114 +263,206 @@ const DetailedStatsPage = ({ onNavigate, issues = [], versions = [] }) => {
               <span>초기화</span>
             </button>
           </div>
+
+          {/* 5개 드롭다운 필터 셀렉터 */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '12px',
+            width: '100%'
+          }}>
+            {/* 1. 연도 (수정버전 선택 시 비활성화) */}
+            <div className="flex-col gap-1">
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                연도 (YEAR) {isYearDisabled && <span style={{ color: 'var(--warning)', fontSize: '0.68rem' }}>(버전선택됨)</span>}
+              </span>
+              <select
+                value={selectedYear}
+                onChange={handleFilterChange(setSelectedYear)}
+                disabled={isYearDisabled}
+                style={getSelectStyle(isYearDisabled)}
+              >
+                <option value="All">전체 연도</option>
+                {availableYears.map(y => <option key={y} value={y}>{y}년</option>)}
+              </select>
+            </div>
+
+            {/* 2. 수정버전 (연도 선택 시 비활성화) */}
+            <div className="flex-col gap-1">
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                수정버전 (VERSION) {isVersionDisabled && <span style={{ color: 'var(--warning)', fontSize: '0.68rem' }}>(연도선택됨)</span>}
+              </span>
+              <select
+                value={selectedVersion}
+                onChange={handleFilterChange(setSelectedVersion)}
+                disabled={isVersionDisabled}
+                style={getSelectStyle(isVersionDisabled)}
+              >
+                <option value="All">전체 버전 (All)</option>
+                {versions.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
+              </select>
+            </div>
+
+            {/* 3. 담당자 */}
+            <div className="flex-col gap-1">
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>담당자 (ASSIGNEE)</span>
+              <select value={selectedAssignee} onChange={handleFilterChange(setSelectedAssignee)} style={getSelectStyle(false)}>
+                <option value="All">전체 담당자 (All)</option>
+                {availableAssignees.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+
+            {/* 4. 이슈 유형 */}
+            <div className="flex-col gap-1">
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>이슈 유형 (TYPE)</span>
+              <select value={selectedType} onChange={handleFilterChange(setSelectedType)} style={getSelectStyle(false)}>
+                <option value="All">전체 유형 (All)</option>
+                {availableTypes.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+
+            {/* 5. 상태 */}
+            <div className="flex-col gap-1">
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>상태 (STATUS)</span>
+              <select value={selectedStatus} onChange={handleFilterChange(setSelectedStatus)} style={getSelectStyle(false)}>
+                <option value="All">전체 상태 (All)</option>
+                {availableStatuses.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
         </div>
 
-        {/* 5개 드롭다운 필터 셀렉터 */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '10px',
-          width: '100%'
-        }}>
-          {/* 1. 연도 */}
-          <div className="flex-col gap-1">
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>연도 (YEAR)</span>
-            <select value={selectedYear} onChange={handleFilterChange(setSelectedYear)} style={selectStyle}>
-              <option value="All">전체 연도</option>
-              {availableYears.map(y => <option key={y} value={y}>{y}년</option>)}
-            </select>
+        {/* 2단: 전체 너비 검색창 & 우측 결과 건수 배지 */}
+        <div className="flex-row justify-between align-center" style={{ borderTop: '1px solid var(--border-color)', paddingTop: '12px', flexWrap: 'wrap', gap: '12px' }}>
+          {/* 전체 너비 검색창 */}
+          <div style={{ position: 'relative', flex: 1, minWidth: '280px' }}>
+            <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+            <input
+              type="text"
+              placeholder="이슈 키(PPLW-...) 또는 제목 실시간 검색..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              style={{
+                width: '100%',
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--glass-border)',
+                borderRadius: '8px',
+                padding: '9px 14px 9px 38px',
+                fontSize: '0.9rem',
+                outline: 'none'
+              }}
+            />
           </div>
 
-          {/* 2. 수정버전 */}
-          <div className="flex-col gap-1">
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>수정버전 (VERSION)</span>
-            <select value={selectedVersion} onChange={handleFilterChange(setSelectedVersion)} style={selectStyle}>
-              <option value="All">전체 버전 (All)</option>
-              {versions.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
-            </select>
-          </div>
-
-          {/* 3. 담당자 */}
-          <div className="flex-col gap-1">
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>담당자 (ASSIGNEE)</span>
-            <select value={selectedAssignee} onChange={handleFilterChange(setSelectedAssignee)} style={selectStyle}>
-              <option value="All">전체 담당자 (All)</option>
-              {availableAssignees.map(a => <option key={a} value={a}>{a}</option>)}
-            </select>
-          </div>
-
-          {/* 4. 이슈 유형 */}
-          <div className="flex-col gap-1">
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>이슈 유형 (TYPE)</span>
-            <select value={selectedType} onChange={handleFilterChange(setSelectedType)} style={selectStyle}>
-              <option value="All">전체 유형 (All)</option>
-              {availableTypes.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-
-          {/* 5. 상태 */}
-          <div className="flex-col gap-1">
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>상태 (STATUS)</span>
-            <select value={selectedStatus} onChange={handleFilterChange(setSelectedStatus)} style={selectStyle}>
-              <option value="All">전체 상태 (All)</option>
-              {availableStatuses.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* 필터 결과 요약 배지 */}
-        <div className="flex-row justify-between align-center" style={{ borderTop: '1px solid var(--border-color)', paddingTop: '10px', fontSize: '0.82rem', color: 'var(--text-muted)', flexWrap: 'wrap', gap: '8px' }}>
-          <div className="flex-row gap-3 align-center">
-            <span>필터링된 이슈: <strong style={{ color: 'var(--accent-primary)', fontSize: '0.9rem' }}>{filteredIssues.length.toLocaleString()}건</strong></span>
+          {/* 우측 정렬 필터링된 이슈 건수 */}
+          <div className="flex-row gap-3 align-center" style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            <span>필터링된 이슈: <strong style={{ color: 'var(--accent-primary)', fontSize: '1rem', fontWeight: 700 }}>{filteredIssues.length.toLocaleString()}건</strong></span>
             {versionMetadata && (
               <>
                 <span>•</span>
-                <span>스프린트 기간: <strong style={{ color: 'var(--text-primary)' }}>{versionMetadata.start} ~ {versionMetadata.end}</strong></span>
+                <span>기간: <strong style={{ color: 'var(--text-primary)' }}>{versionMetadata.start} ~ {versionMetadata.end}</strong></span>
                 <span>•</span>
                 <span>Work Days: <strong style={{ color: 'var(--warning)' }}>{versionMetadata.workDays}일</strong></span>
               </>
             )}
           </div>
-          <span>페이지 당 <strong>{ITEMS_PER_PAGE}건</strong>씩 표출</span>
         </div>
       </div>
 
-      {/* 3. 상단 차트 3종 영역 (토글형) */}
-      {isChartsOpen && (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '20px',
-          width: '100%'
-        }}>
-          <PriorityChart data={priorityData} />
-          <TypeChart data={typeData} />
-          <AssigneeCountChart data={assigneeCountData} />
+      {/* 3. 상단 차트 3종 영역 (FAB 접기 버튼 내장) */}
+      {isChartsOpen ? (
+        <div style={{ position: 'relative', width: '100%' }}>
+          {/* 차트 영역 우측 상단 플로팅 접기 FAB 버튼 */}
+          <button
+            onClick={() => setIsChartsOpen(false)}
+            style={{
+              position: 'absolute',
+              top: '-14px',
+              right: '16px',
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '20px',
+              padding: '4px 12px',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              color: 'var(--text-muted)',
+              cursor: 'pointer',
+              boxShadow: 'var(--shadow-md)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              zIndex: 5,
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--accent-primary)';
+              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--text-muted)';
+              e.currentTarget.style.borderColor = 'var(--border-color)';
+            }}
+            title="통계 차트 접기"
+          >
+            <ChevronUp size={14} />
+            <span>차트 접기</span>
+          </button>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: '20px',
+            width: '100%'
+          }}>
+            <PriorityChart data={priorityData} />
+            <TypeChart data={typeData} />
+            <AssigneeCountChart data={assigneeCountData} />
+          </div>
+        </div>
+      ) : (
+        /* 차트가 접혔을 때 펼치기 버튼 */
+        <div className="flex-row justify-end w-full" style={{ marginTop: '-8px' }}>
+          <button
+            onClick={() => setIsChartsOpen(true)}
+            style={{
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '20px',
+              padding: '6px 14px',
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              color: 'var(--accent-primary)',
+              cursor: 'pointer',
+              boxShadow: 'var(--shadow-sm)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--bg-tertiary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--bg-secondary)';
+            }}
+          >
+            <Layers size={14} />
+            <span>통계 차트 펼치기</span>
+            <ChevronDown size={14} />
+          </button>
         </div>
       )}
 
-      {/* 4. 하단 이슈 데이터 테이블 (Issue Explorer) */}
-      <div className="glass-panel flex-col" style={{ padding: '20px 24px', borderRadius: '12px', gap: '16px' }}>
-        {/* 테이블 헤더 바 */}
+      {/* 4. 하단 이슈 데이터 테이블 */}
+      <div className="glass-panel flex-col" style={{ padding: '20px 24px', borderRadius: '12px', gap: '14px' }}>
+        {/* 테이블 도움말 문구 */}
         <div className="flex-row justify-between align-center">
-          <div className="flex-row gap-2 align-center">
-            <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              이슈 목록 (Issue Explorer)
-            </span>
-            <span style={{
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              background: 'rgba(37, 99, 235, 0.1)',
-              color: 'var(--accent-primary)',
-              padding: '2px 8px',
-              borderRadius: '12px'
-            }}>
-              {filteredIssues.length} Issues
-            </span>
-          </div>
-
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            💡 행(Row)을 클릭하면 상세 정보 및 타임라인을 확인할 수 있습니다.
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            💡 행(Row)을 클릭하면 상세 타임라인 및 설명·코멘트를 확인할 수 있습니다.
           </span>
         </div>
 
@@ -564,7 +570,7 @@ const DetailedStatsPage = ({ onNavigate, issues = [], versions = [] }) => {
                         </span>
                       </td>
 
-                      {/* Summary (Flex title with ellipsis) */}
+                      {/* Summary */}
                       <td style={{ padding: '10px 14px' }}>
                         <div
                           style={{
@@ -614,7 +620,6 @@ const DetailedStatsPage = ({ onNavigate, issues = [], versions = [] }) => {
             </span>
 
             <div className="flex-row gap-1 align-center">
-              {/* 이전 버튼 */}
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
@@ -633,7 +638,6 @@ const DetailedStatsPage = ({ onNavigate, issues = [], versions = [] }) => {
                 <ChevronLeft size={16} />
               </button>
 
-              {/* 페이지 번호 버튼 (최대 7개 노출) */}
               {Array.from({ length: totalPages }, (_, i) => i + 1)
                 .filter(page => {
                   return page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2;
@@ -666,7 +670,6 @@ const DetailedStatsPage = ({ onNavigate, issues = [], versions = [] }) => {
                   );
                 })}
 
-              {/* 다음 버튼 */}
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}

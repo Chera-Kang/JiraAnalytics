@@ -60,9 +60,9 @@ const DetailedStatsSection = ({ issues = [], globalYear = 'All', onNavigate }) =
   }, [issues, globalYear]);
 
   return (
-    <div className="flex-col gap-5 w-full animate-fade-in" style={{ animationDelay: '0.2s' }}>
+    <div className="flex-col w-full animate-fade-in" style={{ gap: '1.75rem', animationDelay: '0.2s' }}>
       {/* 세부 통계 헤더 */}
-      <div className="flex-row justify-between align-center" style={{ flexWrap: 'wrap', gap: '16px' }}>
+      <div className="flex-row justify-between align-center" style={{ flexWrap: 'wrap', gap: '16px', marginBottom: '0.5rem' }}>
         <div className="flex-col gap-1">
           <div className="flex-row gap-3 align-center">
             <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 600 }}>세부 통계</h2>
