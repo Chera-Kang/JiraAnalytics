@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { X, User, Clock, RefreshCw, MessageSquare, FileText, Link2, GitFork, Calendar } from 'lucide-react';
+import { getPriorityColor, getTypeColor } from '../../utils/jiraColors';
 
 /**
  * [이슈 상세 보기 모달 컴포넌트]
  * - createPortal을 사용하여 브라우저 전체 화면(Full Viewport)에 백드롭 및 모달 표출
  * - 모달 활성화 시 background scroll 방지 (body overflow hidden)
  * - 상단 1행: 좌측 배지들 + 우측 X 닫기 버튼, 2행: 제목 표출
- * - 소요 일수 하단 타임라인 접기/펼치기 아코디언 지원 (모달 높이 82vh 고정 유지)
- * - 설명, 코멘트, 연결 이슈 항목 항상 표출 (없을 시 안내 문구)
+ * - 4개 메타데이터 카드 내부 중앙 정렬
+ * - 소요 일수 카드 하단에 플로팅/걸친 형태의 [타임라인 보기/닫기] FAB 버튼
+ * - 연결된 이슈 정규식 파싱(단어 쪼개짐 버그 해결)
+ * - 설명, 코멘트, 연결 이슈 항목 항상 표출
  */
 const IssueDetailModal = ({ issue, onClose }) => {
   // 타임라인 접기/펼치기 상태 (기본값: 닫힘)
@@ -31,18 +34,6 @@ const IssueDetailModal = ({ issue, onClose }) => {
   }, [onClose]);
 
   if (!issue) return null;
-
-  // 우선순위 색상 헬퍼
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'Highest':
-      case 'High': return { bg: 'rgba(239, 68, 68, 0.12)', text: '#ef4444', border: 'rgba(239, 68, 68, 0.25)' };
-      case 'Medium': return { bg: 'rgba(245, 158, 11, 0.12)', text: '#f59e0b', border: 'rgba(245, 158, 11, 0.25)' };
-      case 'Low':
-      case 'Lowest': return { bg: 'rgba(16, 185, 129, 0.12)', text: '#10b981', border: 'rgba(16, 185, 129, 0.25)' };
-      default: return { bg: 'rgba(100, 116, 139, 0.12)', text: '#64748b', border: 'rgba(100, 116, 139, 0.25)' };
-    }
-  };
 
   // 상태 배지 색상 헬퍼
   const getStatusColor = (status) => {
@@ -72,16 +63,28 @@ const IssueDetailModal = ({ issue, onClose }) => {
     return String(val);
   };
 
-  // 연결된 이슈 줄바꿈 파싱
+  // 연결된 이슈 정밀 파싱 (단어 분할 버그 수정)
   const parseLinkedIssues = (linkedStr) => {
     if (!linkedStr || linkedStr === '-') return [];
-    const lines = linkedStr.split(/\n+/).flatMap(chunk => {
-      return chunk.split(/(?=[a-zA-Z\s\-_]+:\s*PPLW-\d+)/g).filter(Boolean);
-    }).map(s => s.trim()).filter(Boolean);
-    return lines.length > 0 ? lines : [linkedStr];
+    const text = String(linkedStr).trim();
+    if (!text) return [];
+
+    const rawLines = text.split(/[\r\n]+/).map(s => s.trim()).filter(Boolean);
+    const results = [];
+    for (const line of rawLines) {
+      // "relates to: PPLW-1234", "blocks: PPLW-5678", "PPLW-1234" 패턴 매칭
+      const matches = line.match(/(?:[a-zA-Z가-힣\s\-_]+:\s*)?[A-Z0-9]+-\d+/g);
+      if (matches && matches.length > 0) {
+        results.push(...matches.map(m => m.trim()));
+      } else {
+        results.push(line);
+      }
+    }
+    return results.filter(Boolean);
   };
 
   const priorityStyle = getPriorityColor(issue.priority);
+  const typeStyle = getTypeColor(issue.type);
   const statusStyle = getStatusColor(issue.status);
   const linkedList = parseLinkedIssues(issue.linkedIssues);
 
@@ -184,9 +187,10 @@ const IssueDetailModal = ({ issue, onClose }) => {
               </span>
 
               <span style={{
-                background: 'var(--bg-tertiary)',
-                color: 'var(--text-secondary)',
-                border: '1px solid var(--border-color)',
+                background: typeStyle.bg,
+                color: typeStyle.text,
+                border: `1px solid ${typeStyle.border}`,
+                fontWeight: 600,
                 fontSize: '0.8rem',
                 padding: '3px 8px',
                 borderRadius: '6px'
@@ -254,9 +258,9 @@ const IssueDetailModal = ({ issue, onClose }) => {
           padding: '24px 28px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '22px'
+          gap: '24px'
         }}>
-          {/* 메타정보 4열 그리드 */}
+          {/* 메타정보 4열 그리드 (4분할 내 중앙 정렬) */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
@@ -264,65 +268,95 @@ const IssueDetailModal = ({ issue, onClose }) => {
             background: 'var(--bg-secondary)',
             border: '1px solid var(--border-color)',
             borderRadius: '12px',
-            padding: '16px'
+            padding: '18px 16px'
           }}>
-            <div className="flex-col gap-1">
+            {/* 1. 담당자 (중앙 정렬) */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '4px' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>담당자</span>
-              <div className="flex-row gap-1 align-center">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', justifyContent: 'center' }}>
                 <User size={14} color="var(--accent-primary)" />
-                <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>{issue.assignee}</strong>
+                <strong style={{ fontSize: '0.92rem', color: 'var(--text-primary)' }}>{issue.assignee}</strong>
               </div>
             </div>
 
-            <div className="flex-col gap-1">
+            {/* 2. 수정버전 (중앙 정렬) */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '4px' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>수정버전</span>
-              <strong style={{ fontSize: '0.9rem', color: 'var(--accent-secondary)' }}>{issue.fixVersion}</strong>
+              <strong style={{ fontSize: '0.92rem', color: 'var(--accent-secondary)' }}>{issue.fixVersion}</strong>
             </div>
 
-            <div className="flex-col gap-1">
+            {/* 3. 보고자 (중앙 정렬) */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '4px' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>보고자</span>
-              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{issue.reporter || '-'}</span>
+              <span style={{ fontSize: '0.92rem', color: 'var(--text-secondary)' }}>{issue.reporter || '-'}</span>
             </div>
 
-            {/* 4번째 카드: 소요 일수 & 타임라인 토글 버튼 */}
-            <div className="flex-col gap-1">
+            {/* 4. 소요 일수 (중앙 정렬 & 반쯤 걸친 플로팅 타임라인 FAB 버튼) */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              gap: '4px',
+              position: 'relative'
+            }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>소요 일수</span>
-              <div className="flex-row gap-1 align-center">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', justifyContent: 'center' }}>
                 <Clock size={14} color="var(--warning)" />
-                <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                <strong style={{ fontSize: '0.92rem', color: 'var(--text-primary)' }}>
                   {issue.resolutionTimeDays ? `${issue.resolutionTimeDays}일` : '-'}
                 </strong>
               </div>
 
-              {/* 타임라인 접기/펼치기 버튼 */}
+              {/* 소요 일수 box 하단에 반쯤 걸친 플로팅 버튼 (FAB 형태) */}
               <button
                 onClick={() => setIsTimelineOpen(!isTimelineOpen)}
                 style={{
-                  marginTop: '4px',
-                  background: isTimelineOpen ? 'rgba(37, 99, 235, 0.08)' : 'var(--bg-tertiary)',
-                  color: isTimelineOpen ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                  border: isTimelineOpen ? '1px solid rgba(37, 99, 235, 0.25)' : '1px solid var(--border-color)',
-                  borderRadius: '6px',
-                  padding: '3px 8px',
+                  position: 'absolute',
+                  bottom: '-28px',
+                  background: isTimelineOpen ? 'var(--accent-primary)' : 'var(--bg-secondary)',
+                  color: isTimelineOpen ? '#ffffff' : 'var(--accent-primary)',
+                  border: '1px solid rgba(37, 99, 235, 0.3)',
+                  borderRadius: '20px',
+                  padding: '3px 12px',
                   fontSize: '0.72rem',
                   fontWeight: 600,
                   cursor: 'pointer',
+                  boxShadow: 'var(--shadow-md)',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
                   gap: '4px',
-                  transition: 'all 0.2s'
+                  zIndex: 10,
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
                 }}
+                onMouseEnter={(e) => {
+                  if (!isTimelineOpen) {
+                    e.currentTarget.style.background = 'rgba(37, 99, 235, 0.08)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isTimelineOpen) {
+                    e.currentTarget.style.background = 'var(--bg-secondary)';
+                  }
+                }}
+                title="이슈 라이프사이클 타임라인 펼치기/접기"
               >
                 <Calendar size={12} />
-                <span>{isTimelineOpen ? '타임라인 닫기 ▲' : '타임라인 보기 ▼'}</span>
+                <span>타임라인 {isTimelineOpen ? '닫기 ▲' : '보기 ▼'}</span>
               </button>
             </div>
           </div>
 
-          {/* 타임라인 시각화 바 (아코디언 형태: 토글 시 부드럽게 표출) */}
+          {/* 타임라인 시각화 바 (아코디언 형태) */}
           {isTimelineOpen && (
-            <div className="flex-col gap-3 animate-fade-in" style={{ background: 'var(--bg-tertiary)', padding: '16px 20px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+            <div className="flex-col gap-3 animate-fade-in" style={{
+              background: 'var(--bg-tertiary)',
+              padding: '16px 20px',
+              borderRadius: '12px',
+              border: '1px solid var(--border-color)',
+              marginTop: '6px'
+            }}>
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                 🕒 이슈 라이프사이클 타임라인
               </span>
@@ -357,7 +391,7 @@ const IssueDetailModal = ({ issue, onClose }) => {
           )}
 
           {/* 1. 이슈 설명 (Description) - 항상 표출 */}
-          <div className="flex-col gap-2">
+          <div className="flex-col gap-2" style={{ marginTop: isTimelineOpen ? '0' : '4px' }}>
             <div className="flex-row gap-2 align-center">
               <FileText size={16} color="var(--accent-primary)" />
               <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700 }}>이슈 설명 (Description)</h4>
@@ -420,11 +454,11 @@ const IssueDetailModal = ({ issue, onClose }) => {
                         color: 'var(--text-primary)',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px'
+                        gap: '8px'
                       }}
                     >
-                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-primary)' }} />
-                      <span>{item}</span>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-primary)', flexShrink: 0 }} />
+                      <span style={{ fontWeight: 500 }}>{item}</span>
                     </div>
                   ))}
                 </div>

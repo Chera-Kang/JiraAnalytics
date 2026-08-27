@@ -13,6 +13,7 @@ import PriorityChart from '../components/charts/PriorityChart';
 import TypeChart from '../components/charts/TypeChart';
 import AssigneeCountChart from '../components/charts/AssigneeCountChart';
 import IssueDetailModal from '../components/common/IssueDetailModal';
+import { getPriorityColor, getTypeColor } from '../utils/jiraColors';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -188,18 +189,6 @@ const DetailedStatsPage = ({ issues = [], versions = [] }) => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredIssues.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredIssues, currentPage]);
-
-  // 뱃지 색상 헬퍼
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'Highest':
-      case 'High': return { bg: 'rgba(239, 68, 68, 0.12)', text: '#ef4444', border: 'rgba(239, 68, 68, 0.25)' };
-      case 'Medium': return { bg: 'rgba(245, 158, 11, 0.12)', text: '#f59e0b', border: 'rgba(245, 158, 11, 0.25)' };
-      case 'Low':
-      case 'Lowest': return { bg: 'rgba(16, 185, 129, 0.12)', text: '#10b981', border: 'rgba(16, 185, 129, 0.25)' };
-      default: return { bg: 'rgba(100, 116, 139, 0.12)', text: '#64748b', border: 'rgba(100, 116, 139, 0.25)' };
-    }
-  };
 
   const getStatusColor = (status) => {
     if (status === '종료' || status === 'Done' || status === 'Closed') {
@@ -501,6 +490,7 @@ const DetailedStatsPage = ({ issues = [], versions = [] }) => {
               {paginatedIssues.length > 0 ? (
                 paginatedIssues.map((issue) => {
                   const priorityStyle = getPriorityColor(issue.priority);
+                  const typeStyle = getTypeColor(issue.type);
                   const statusStyle = getStatusColor(issue.status);
 
                   return (
@@ -536,7 +526,15 @@ const DetailedStatsPage = ({ issues = [], versions = [] }) => {
 
                       {/* Type */}
                       <td style={{ padding: '10px 10px' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        <span style={{
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          color: typeStyle.text,
+                          background: typeStyle.bg,
+                          border: `1px solid ${typeStyle.border}`,
+                          padding: '2px 6px',
+                          borderRadius: '4px'
+                        }}>
                           {issue.type}
                         </span>
                       </td>

@@ -1,8 +1,6 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-
-// 우선순위별 구분 색상 배열
-const COLORS = ['#ef4444', '#f59e0b', '#2563eb', '#059669', '#7c3aed'];
+import { getPriorityColor } from '../../utils/jiraColors';
 
 /**
  * [이슈 우선순위 커스텀 툴팁]
@@ -21,13 +19,10 @@ const CustomTooltip = ({ active, payload }) => {
 
 /**
  * [이슈 우선순위 도넛 차트]
- * - innerRadius/outerRadius 조절로 두께를 풍성하게 확장
- * - paddingAngle 조절로 각 조각 간 벌어지는 간격 축소
  */
 const PriorityChart = ({ data }) => {
   return (
     <div className="glass-panel flex-col" style={{ height: '340px', padding: '16px 20px' }}>
-      {/* 차트 헤더 */}
       <h4 style={{ margin: '0 0 16px 0', textAlign: 'center', color: 'var(--text-primary)', fontWeight: 600 }}>
         이슈 우선순위
       </h4>
@@ -38,16 +33,16 @@ const PriorityChart = ({ data }) => {
             data={data}
             cx="50%"
             cy="50%"
-            innerRadius={45}  /* 기존 60 -> 45로 변경하여 안쪽 방향으로 두께 1.5배 확장 */
-            outerRadius={80}  /* 바깥 반경 */
-            paddingAngle={2.5} /* 기존 5 -> 2.5로 조각 간 벌어지는 간격 절반 감소 */
+            innerRadius={45}
+            outerRadius={80}
+            paddingAngle={2.5}
             dataKey="value"
             animationBegin={0}
             animationDuration={250}
             animationEasing="ease-out"
           >
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Cell key={`cell-${index}`} fill={getPriorityColor(entry.name).fill} />
             ))}
           </Pie>
           <Tooltip content={<CustomTooltip />} />
