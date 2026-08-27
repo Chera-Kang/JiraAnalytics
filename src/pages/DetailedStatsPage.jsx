@@ -424,8 +424,8 @@ const DetailedStatsPage = ({ issues = [], versions = [] }) => {
           </div>
         </div>
       ) : (
-        /* 차트가 접혔을 때 펼치기 버튼 */
-        <div className="flex-row justify-end w-full" style={{ marginTop: '-8px' }}>
+        /* 차트가 접혔을 때 펼치기 버튼 (우측 정렬) */
+        <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', marginTop: '-8px' }}>
           <button
             onClick={() => setIsChartsOpen(true)}
             style={{
