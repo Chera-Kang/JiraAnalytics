@@ -107,6 +107,10 @@ const fetchSheetData = async () => {
         date3: row.c[12]?.f || row.c[12]?.v || '',
         date4: row.c[13]?.f || row.c[13]?.v || '',
         reopenCounter: Number(row.c[14]?.v) || 0,
+        linkedIssues: row.c[15]?.v || '',
+        subTasks: row.c[16]?.v || '',
+        description: row.c[17]?.v || '',
+        comments: row.c[18]?.v || '',
         resolutionTimeDays: resolutionTimeDays
       };
     }).filter(Boolean);
