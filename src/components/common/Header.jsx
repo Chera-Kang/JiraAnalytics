@@ -1,11 +1,14 @@
 import React from 'react';
-import { LayoutDashboard, RefreshCw, Clock, ArrowRight } from 'lucide-react';
+import { LayoutDashboard, RefreshCw, Clock, BarChart2, Lightbulb } from 'lucide-react';
 
 /**
  * [글로벌 상단 헤더 컴포넌트]
- * - 대시보드 로고 및 홈 이동
- * - 최종 동기화 시간 표출
- * - 차세대 로드맵(Next) / 대시보드 전환 버튼
+ * - 대시보드 로고 (클릭 시 메인 대시보드로 이동)
+ * - 최종 동기화 시간 표출 (Last Updated)
+ * - 데이터 갱신 (비활성화 버튼)
+ * - 담당자별 통계 (버튼)
+ * - 심층 분석 (버튼)
+ * - Next Plan 로드맵 (아이디어 이모지 버튼)
  */
 const Header = ({ lastUpdated, isSyncing: _isSyncing, onSync, currentView = 'dashboard', onNavigate }) => {
   // Format the date for display (년월일시분 까지 표기, 초 제외)
@@ -29,111 +32,121 @@ const Header = ({ lastUpdated, isSyncing: _isSyncing, onSync, currentView = 'das
     }
   }
 
+  // 공통 네비게이션 버튼 스타일 헬퍼
+  const getNavButtonStyle = (isActive) => ({
+    background: isActive ? 'var(--accent-gradient)' : 'var(--bg-secondary)',
+    color: isActive ? '#ffffff' : 'var(--text-primary)',
+    border: isActive ? 'none' : '1px solid var(--border-color)',
+    borderRadius: '8px',
+    padding: '8px 14px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    transition: 'all 0.2s ease',
+    boxShadow: isActive ? 'var(--shadow-glow)' : 'var(--shadow-sm)',
+    fontWeight: 600,
+    fontSize: '0.88rem'
+  });
+
   return (
-    <header className="flex-row justify-between animate-fade-in" style={{ animationDelay: '0.1s' }}>
-      <div className="flex-row gap-4 align-center">
+    <header className="flex-row justify-between animate-fade-in" style={{ animationDelay: '0.1s', flexWrap: 'wrap', gap: '16px' }}>
+      {/* 1. 좌측 로고 및 타이틀 (클릭 시 메인 홈 이동) */}
+      <div 
+        onClick={() => onNavigate && onNavigate('dashboard')}
+        className="flex-row gap-3 align-center"
+        style={{ cursor: 'pointer' }}
+        title="메인 대시보드로 이동"
+      >
         <div 
-          onClick={() => onNavigate && onNavigate('dashboard')}
           className="flex-row" 
           style={{ 
             background: 'var(--accent-gradient)', 
-            padding: '12px', 
-            borderRadius: '12px',
-            boxShadow: 'var(--shadow-glow)',
-            cursor: 'pointer'
+            padding: '10px', 
+            borderRadius: '10px',
+            boxShadow: 'var(--shadow-glow)'
           }}
-          title="대시보드 홈으로 이동"
         >
-          <LayoutDashboard size={28} color="white" />
+          <LayoutDashboard size={24} color="white" />
         </div>
         <div className="flex-col">
-          <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 700, letterSpacing: '-0.5px' }}>
+          <h1 style={{ margin: 0, fontSize: '1.65rem', fontWeight: 700, letterSpacing: '-0.5px' }}>
             Jira Analytics
           </h1>
-          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            실시간 지표 분석 및 이슈 트래킹 대시보드
-          </p>
         </div>
       </div>
       
-      <div className="flex-row gap-4 align-center">
+      {/* 2. 우측 버튼 그룹: Last Updated, 데이터 갱신, 담당자별 통계, 심층 분석, Next Plan */}
+      <div className="flex-row gap-3 align-center" style={{ flexWrap: 'wrap' }}>
         {/* Last Updated Information */}
-        <div className="flex-col" style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        <div className="flex-col" style={{ alignItems: 'flex-end', justifyContent: 'center', marginRight: '4px' }}>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Last Updated
           </span>
           <div className="flex-row gap-1">
             <Clock size={12} color="var(--text-secondary)" />
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
               {formattedDate}
             </span>
           </div>
         </div>
 
-        {/* Sync Button */}
+        {/* Sync Button (데이터 갱신) */}
         <button 
           onClick={onSync}
           disabled={true}
           style={{
             background: 'var(--bg-secondary)',
-            color: 'var(--text-primary)',
-            border: '1px solid var(--glass-border)',
+            color: 'var(--text-muted)',
+            border: '1px solid var(--border-color)',
             borderRadius: '8px',
-            padding: '8px 16px',
+            padding: '8px 12px',
             cursor: 'not-allowed',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            gap: '6px',
             transition: 'all 0.2s ease',
-            opacity: 0.5,
-            boxShadow: 'none'
+            opacity: 0.6,
+            fontSize: '0.88rem',
+            fontWeight: 500
           }}
+          title="자동 동기화 유지 중"
         >
-          <RefreshCw 
-            size={16} 
-            color={"var(--text-muted)"} 
-          />
-          <span style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-muted)' }}>
-            데이터 갱신
-          </span>
+          <RefreshCw size={15} color="var(--text-muted)" />
+          <span>데이터 갱신</span>
         </button>
 
-        {/* Next Roadmap Page Button */}
+        {/* 심층 분석 버튼 */}
         <button
-          onClick={() => onNavigate && onNavigate(currentView === 'dashboard' ? 'next' : 'dashboard')}
-          style={{
-            background: currentView === 'dashboard' ? 'var(--accent-gradient)' : 'var(--bg-secondary)',
-            color: currentView === 'dashboard' ? '#ffffff' : 'var(--text-primary)',
-            border: currentView === 'dashboard' ? 'none' : '1px solid var(--border-color)',
-            borderRadius: '8px',
-            padding: '8px 16px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'all 0.2s ease',
-            boxShadow: currentView === 'dashboard' ? 'var(--shadow-glow)' : 'var(--shadow-sm)',
-            fontWeight: 600,
-            fontSize: '0.9rem'
-          }}
+          onClick={() => onNavigate && onNavigate('detailedStats')}
+          style={getNavButtonStyle(currentView === 'detailedStats')}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-1px)';
+            if (currentView !== 'detailedStats') e.currentTarget.style.background = 'var(--bg-tertiary)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
+            if (currentView !== 'detailedStats') e.currentTarget.style.background = 'var(--bg-secondary)';
           }}
         >
-          {currentView === 'dashboard' ? (
-            <>
-              <span>Next</span>
-              <ArrowRight size={16} />
-            </>
-          ) : (
-            <>
-              <LayoutDashboard size={16} />
-              <span>Dashboard</span>
-            </>
-          )}
+          <BarChart2 size={16} />
+          <span>심층 분석</span>
+        </button>
+
+        {/* Next Plan (로드맵) 아이디어 버튼 */}
+        <button
+          onClick={() => onNavigate && onNavigate('next')}
+          style={{
+            ...getNavButtonStyle(currentView === 'next'),
+            padding: '8px 10px'
+          }}
+          onMouseEnter={(e) => {
+            if (currentView !== 'next') e.currentTarget.style.background = 'var(--bg-tertiary)';
+          }}
+          onMouseLeave={(e) => {
+            if (currentView !== 'next') e.currentTarget.style.background = 'var(--bg-secondary)';
+          }}
+          title="Next Plan 로드맵"
+        >
+          <Lightbulb size={17} color={currentView === 'next' ? '#ffffff' : 'var(--warning)'} />
         </button>
       </div>
     </header>

@@ -10,7 +10,7 @@ const CustomTooltip = ({ active, payload }) => {
     return (
       <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', boxShadow: 'var(--shadow-md)' }}>
         <span style={{ color: 'var(--text-secondary)' }}>{payload[0].name}: </span>
-        <strong style={{ color: 'var(--text-primary)' }}>{payload[0].value}</strong>
+        <strong style={{ color: 'var(--text-primary)' }}>{payload[0].value}건</strong>
       </div>
     );
   }
@@ -19,6 +19,7 @@ const CustomTooltip = ({ active, payload }) => {
 
 /**
  * [이슈 유형 도넛 차트]
+ * - 12시 방향(startAngle: 90)부터 시계방향(endAngle: -270)으로 Planning -> Bug 순차 렌더링
  */
 const TypeChart = ({ data }) => {
   return (
@@ -33,6 +34,8 @@ const TypeChart = ({ data }) => {
             data={data}
             cx="50%"
             cy="50%"
+            startAngle={90}
+            endAngle={-270}
             innerRadius={45}
             outerRadius={80}
             paddingAngle={2.5}
@@ -46,7 +49,18 @@ const TypeChart = ({ data }) => {
             ))}
           </Pie>
           <Tooltip content={<CustomTooltip />} />
-          <Legend />
+          <Legend
+            content={() => (
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '6px 12px', fontSize: '0.78rem', paddingTop: '8px' }}>
+                {data.map((item) => (
+                  <div key={`type-legend-${item.name}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                    <div style={{ width: '9px', height: '9px', borderRadius: '2px', background: getTypeColor(item.name).fill }} />
+                    <span style={{ color: 'var(--text-secondary)' }}>{item.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          />
         </PieChart>
       </ResponsiveContainer>
     </div>

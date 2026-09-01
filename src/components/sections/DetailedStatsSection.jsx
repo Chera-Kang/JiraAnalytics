@@ -4,6 +4,12 @@ import PriorityChart from '../charts/PriorityChart';
 import TypeChart from '../charts/TypeChart';
 import AssigneeCountChart from '../charts/AssigneeCountChart';
 
+// 정해진 우선순위 정렬 순서 (Highest -> Lowest)
+const PRIORITY_ORDER = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
+
+// 정해진 이슈 유형 정렬 순서 (Planning -> Bug)
+const TYPE_ORDER = ['Planning', 'Design', '스토리', 'Story', '작업', 'Task', '하위 작업', '하위작업', 'Sub-task', '버그', 'Bug'];
+
 /**
  * [메인 대시보드 내 세부 통계 요약 섹션]
  * - 상단 프로젝트 통계의 [연도(globalYear)]와 100% 자동 동기화
@@ -33,23 +39,33 @@ const DetailedStatsSection = ({ issues = [], globalYear = 'All', onNavigate }) =
       }, {});
     };
 
-    // 차트 포맷 변환 헬퍼 함수 (개수 내림차순 정렬)
-    const toChartData = (groupedObj) => {
-      return Object.keys(groupedObj).map(key => ({
-        name: key,
-        value: groupedObj[key].length
-      })).sort((a, b) => b.value - a.value);
-    };
-
-    // 1. 이슈 우선순위 데이터 가공
+    // 1. 이슈 우선순위 데이터 가공 (Highest -> Lowest 고정 정렬)
     const priorityGrouped = groupBy(filteredIssues, 'priority');
-    const priorityData = toChartData(priorityGrouped);
+    const priorityData = Object.keys(priorityGrouped)
+      .map(key => ({ name: key, value: priorityGrouped[key].length }))
+      .sort((a, b) => {
+        const idxA = PRIORITY_ORDER.indexOf(a.name);
+        const idxB = PRIORITY_ORDER.indexOf(b.name);
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+        return b.value - a.value;
+      });
 
-    // 2. 이슈 유형 데이터 가공
+    // 2. 이슈 유형 데이터 가공 (Planning -> Bug 고정 정렬)
     const typeGrouped = groupBy(filteredIssues, 'type');
-    const typeData = toChartData(typeGrouped);
+    const typeData = Object.keys(typeGrouped)
+      .map(key => ({ name: key, value: typeGrouped[key].length }))
+      .sort((a, b) => {
+        const idxA = TYPE_ORDER.indexOf(a.name);
+        const idxB = TYPE_ORDER.indexOf(b.name);
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+        return b.value - a.value;
+      });
 
-    // 3. 담당자별 이슈 개수 가공
+    // 3. 담당자별 이슈 개수 가공 (개수 내림차순)
     const assigneeGrouped = groupBy(filteredIssues, 'assignee');
     const assigneeCountData = Object.keys(assigneeGrouped).map(assignee => ({
       name: assignee,
@@ -70,51 +86,51 @@ const DetailedStatsSection = ({ issues = [], globalYear = 'All', onNavigate }) =
             <button
               onClick={() => onNavigate && onNavigate('detailedStats')}
               style={{
-                background: 'rgba(37, 99, 235, 0.08)',
+                background: 'transparent',
+                border: 'none',
                 color: 'var(--accent-primary)',
-                border: '1px solid rgba(37, 99, 235, 0.2)',
-                borderRadius: '20px',
-                padding: '4px 12px 4px 14px',
-                fontSize: '0.82rem',
-                fontWeight: 600,
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
-                transition: 'all 0.2s ease'
+                gap: '2px',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                padding: '4px 8px',
+                borderRadius: '6px',
+                transition: 'all 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--accent-primary)';
-                e.currentTarget.style.color = '#ffffff';
-                e.currentTarget.style.transform = 'translateX(2px)';
+                e.currentTarget.style.background = 'rgba(37, 99, 235, 0.08)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(37, 99, 235, 0.08)';
-                e.currentTarget.style.color = 'var(--accent-primary)';
-                e.currentTarget.style.transform = 'translateX(0)';
+                e.currentTarget.style.background = 'transparent';
               }}
-              title="세부 통계 심층 분석 및 전체 이슈 목록으로 이동"
             >
               <span>심층 분석 더보기</span>
-              <ChevronRight size={15} />
+              <ChevronRight size={14} />
             </button>
           </div>
-          <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            {globalYear !== 'All' ? `${globalYear}년 세부 지표 요약` : '전체 기간 세부 지표 요약 (우측 더보기에서 스프린트별·담당자별 상세 필터 제공)'}
-          </span>
+          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+            {globalYear === 'All' ? '전체 기간' : `${globalYear}년`} 기준 이슈 심층 분석 지표
+          </p>
         </div>
       </div>
 
-      {/* 3개 차트 한 줄(1-Row 3-Column) 균등 배치 (우선순위, 유형, 담당자별 개수) */}
+      {/* 3개 차트 한 줄 균등 배치 (1:1:1 Grid) */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
         gap: '20px',
         width: '100%'
       }}>
+        {/* 1. 이슈 우선순위 도넛 차트 */}
         <PriorityChart data={priorityData} />
+
+        {/* 2. 이슈 유형 도넛 차트 */}
         <TypeChart data={typeData} />
-        <AssigneeCountChart data={assigneeCountData} />
+
+        {/* 3. 담당자별 이슈 개수 막대 차트 (막대 클릭 시 개인 대시보드로 이동) */}
+        <AssigneeCountChart data={assigneeCountData} onNavigate={onNavigate} />
       </div>
     </div>
   );

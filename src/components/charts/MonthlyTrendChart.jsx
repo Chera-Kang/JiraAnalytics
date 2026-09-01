@@ -105,7 +105,7 @@ const MonthlyTrendChart = ({ data }) => {
               <Bar 
                 yAxisId="left" 
                 dataKey="created" 
-                name="생성이슈 (Created)" 
+                name="생성 이슈" 
                 fill="url(#colorCreated)" 
                 radius={[4, 4, 0, 0]} 
                 barSize={24} 
@@ -116,7 +116,7 @@ const MonthlyTrendChart = ({ data }) => {
               <Bar 
                 yAxisId="left" 
                 dataKey="resolved" 
-                name="해결이슈 (Resolved)" 
+                name="해결 이슈" 
                 fill="url(#colorResolved)" 
                 radius={[4, 4, 0, 0]} 
                 barSize={24} 
@@ -129,7 +129,7 @@ const MonthlyTrendChart = ({ data }) => {
                 yAxisId="right"
                 type="linear" 
                 dataKey="remaining" 
-                name="잔여이슈 (Remaining)" 
+                name="잔여 이슈" 
                 stroke="#2563eb" 
                 strokeWidth={3}
                 dot={{ r: 4, strokeWidth: 2, fill: 'var(--bg-secondary)' }}

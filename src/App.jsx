@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Header from './components/common/Header';
 import MainPage from './pages/MainPage';
 import DetailedStatsPage from './pages/DetailedStatsPage';
@@ -196,11 +196,33 @@ function App() {
   };
 
   const [currentView, setCurrentView] = useState(getViewFromUrl);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  // 브라우저 탭 타이틀 동적 동기화
+  useEffect(() => {
+    switch (currentView) {
+      case 'detailedStats':
+      case 'detailedStatsMore':
+        document.title = '세부 통계 | Jira Analytics';
+        break;
+      case 'memberStats':
+        document.title = selectedUser ? `${selectedUser} 님의 리포트 | Jira Analytics` : '개인별 통계 | Jira Analytics';
+        break;
+      case 'next':
+        document.title = '로드맵 | Jira Analytics';
+        break;
+      default:
+        document.title = 'Jira Analytics';
+        break;
+    }
+  }, [currentView, selectedUser]);
 
   // 브라우저 뒤로가기 / 앞으로가기 (popstate) 이벤트 리스너
   useEffect(() => {
     const handlePopState = (event) => {
       const view = event.state?.view || getViewFromUrl();
+      const user = event.state?.user || null;
+      if (user) setSelectedUser(user);
       setCurrentView(view);
     };
 
@@ -209,16 +231,23 @@ function App() {
   }, []);
 
   // 페이지 이동 함수 (Browser History에 상태 기록)
-  const handleNavigate = (view) => {
-    if (view === currentView) return;
+  const handleNavigate = (view, payload = {}) => {
+    if (payload.user) {
+      setSelectedUser(payload.user);
+    }
     setCurrentView(view);
     const newUrl = view === 'dashboard' ? window.location.pathname : `#${view}`;
-    window.history.pushState({ view }, '', newUrl);
+    window.history.pushState({ view, user: payload.user || selectedUser }, '', newUrl);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const isFetchedRef = useRef(false);
+
   useEffect(() => {
-    loadData();
+    if (!isFetchedRef.current) {
+      isFetchedRef.current = true;
+      loadData();
+    }
   }, []);
 
   const handleSync = async () => {
@@ -233,11 +262,11 @@ function App() {
     }
   };
 
-  // query3에서 직접 가져온 globalStats에서 연도를 추출합니다.
+  // query3에서 직접 가져온 globalStats에서 연도를 추출합니다 (최신순 정렬).
   const availableYears = useMemo(() => {
     if (!rawData.globalStats) return [];
     const years = new Set(rawData.globalStats.map(item => item.year));
-    return Array.from(years).sort();
+    return Array.from(years).sort().reverse();
   }, [rawData]);
 
   if (isLoading && !isSyncing) {
@@ -302,6 +331,7 @@ function App() {
         <MemberStatsPage
           issues={rawData.issues}
           versions={rawData.versions}
+          initialUser={selectedUser}
           onNavigate={handleNavigate}
         />
       )}

@@ -13,7 +13,7 @@ import { getPriorityColor, getTypeColor } from '../../utils/jiraColors';
  * - 연결된 이슈 정규식 파싱(단어 쪼개짐 버그 해결)
  * - 설명, 코멘트, 연결 이슈 항목 항상 표출
  */
-const IssueDetailModal = ({ issue, onClose }) => {
+const IssueDetailModal = ({ issue, onClose, onNavigate }) => {
   // 타임라인 접기/펼치기 상태 (기본값: 닫힘)
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
 
@@ -35,16 +35,23 @@ const IssueDetailModal = ({ issue, onClose }) => {
 
   if (!issue) return null;
 
+  // 미지정 대체 포맷 헬퍼
+  const formatValue = (val) => (!val || val === '미지정' || val === 'None') ? '-' : val;
+
   // 상태 배지 색상 헬퍼
   const getStatusColor = (status) => {
-    if (status === '종료' || status === 'Done' || status === 'Closed') {
+    const s = (status || '').toLowerCase();
+    if (s === '종료' || s === 'done' || s === 'closed') {
       return { bg: 'rgba(16, 185, 129, 0.15)', text: '#10b981' };
     }
-    if (status === '진행 중' || status === 'In Progress' || status === '개발중') {
+    if (s === '진행 중' || s === 'in progress' || s === '개발중' || s === 'dev complete' || s.includes('dev complete') || s === '개발완료') {
       return { bg: 'rgba(37, 99, 235, 0.15)', text: '#3b82f6' };
     }
-    if (status.includes('QA') || status.includes('검수')) {
+    if (s.includes('qa') || s.includes('검수')) {
       return { bg: 'rgba(245, 158, 11, 0.15)', text: '#f59e0b' };
+    }
+    if (s.includes('reopen') || s.includes('재오픈')) {
+      return { bg: 'rgba(239, 68, 68, 0.15)', text: '#ef4444' };
     }
     return { bg: 'rgba(100, 116, 139, 0.15)', text: '#94a3b8' };
   };
@@ -270,25 +277,57 @@ const IssueDetailModal = ({ issue, onClose }) => {
             borderRadius: '12px',
             padding: '18px 16px'
           }}>
-            {/* 1. 담당자 (중앙 정렬) */}
+            {/* 1. 담당자 (클릭 시 개인별 대시보드로 이동) */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '4px' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>담당자</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', justifyContent: 'center' }}>
-                <User size={14} color="var(--accent-primary)" />
-                <strong style={{ fontSize: '0.92rem', color: 'var(--text-primary)' }}>{issue.assignee}</strong>
-              </div>
+              {issue.assignee && issue.assignee !== '미지정' && issue.assignee !== 'None' && issue.assignee !== '-' ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onNavigate) {
+                      onClose();
+                      onNavigate('memberStats', { user: issue.assignee });
+                    }
+                  }}
+                  style={{
+                    background: 'rgba(37, 99, 235, 0.08)',
+                    border: '1px solid rgba(37, 99, 235, 0.2)',
+                    borderRadius: '6px',
+                    padding: '3px 8px',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    transition: 'all 0.15s'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(37, 99, 235, 0.2)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(37, 99, 235, 0.08)'; }}
+                  title={`👤 ${issue.assignee} 님의 개인 기여 리포트 보기`}
+                >
+                  <User size={14} color="var(--accent-primary)" />
+                  <strong style={{ fontSize: '0.92rem', color: 'var(--accent-primary)' }}>{issue.assignee}</strong>
+                </button>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', justifyContent: 'center' }}>
+                  <User size={14} color="var(--text-muted)" />
+                  <strong style={{ fontSize: '0.92rem', color: 'var(--text-primary)' }}>-</strong>
+                </div>
+              )}
             </div>
 
             {/* 2. 수정버전 (중앙 정렬) */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '4px' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>수정버전</span>
-              <strong style={{ fontSize: '0.92rem', color: 'var(--accent-secondary)' }}>{issue.fixVersion}</strong>
+              <strong style={{ fontSize: '0.92rem', color: 'var(--accent-secondary)' }}>{formatValue(issue.fixVersion)}</strong>
             </div>
 
-            {/* 3. 보고자 (중앙 정렬) */}
+            {/* 3. 보고자 (중앙 정렬, 아이콘 및 bold 적용) */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '4px' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>보고자</span>
-              <span style={{ fontSize: '0.92rem', color: 'var(--text-secondary)' }}>{issue.reporter || '-'}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', justifyContent: 'center' }}>
+                <User size={14} color="var(--accent-secondary)" />
+                <strong style={{ fontSize: '0.92rem', color: 'var(--text-primary)' }}>{formatValue(issue.reporter)}</strong>
+              </div>
             </div>
 
             {/* 4. 소요 일수 (중앙 정렬 & 반쯤 걸친 플로팅 타임라인 FAB 버튼) */}
