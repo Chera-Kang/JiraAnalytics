@@ -5,12 +5,15 @@ import DetailedStatsPage from './pages/DetailedStatsPage';
 import MemberStatsPage from './pages/MemberStatsPage';
 import RoadmapPage from './pages/RoadmapPage';
 
-const SHEET_ID = '1C_sTWWr-n6B1rRcajcFHAAbH-WTxT1vLXDrwDjwM5n4';
+const SHEET_ID = import.meta.env.VITE_SHEET_ID || '';
 
 /**
  * 구글 시트의 공개 JSON API (gviz)에서 데이터를 읽어와 파싱하는 헬퍼 함수
  */
 const fetchGvizSheet = async (sheetName) => {
+  if (!SHEET_ID) {
+    throw new Error("스프레드시트 ID(VITE_SHEET_ID)가 설정되지 않았습니다. .env 파일을 확인해주세요.");
+  }
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
   const response = await fetch(url);
   const text = await response.text();
