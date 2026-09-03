@@ -21,6 +21,7 @@ client_secret*.json
 .clasp.json
 .clasprc.json
 gas/Code.js
+todo.txt
 
 # Logs
 logs

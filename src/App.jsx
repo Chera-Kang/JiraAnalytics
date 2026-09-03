@@ -80,7 +80,8 @@ const fetchSheetData = async () => {
     // 3. 이슈 데이터 파싱 (raw_data 기준 전체 데이터 직접 파싱)
     const issues = rawDataTable.rows.map(row => {
       const key = row.c[0]?.v;
-      if (!key || !key.toString().startsWith('PPLW')) return null;
+      // Jira 이슈 키 표준 정규식 패턴 (예: PPLW-1234, PROJ-123 등 모든 프로젝트 키 지원)
+      if (!key || !/^[A-Z][A-Z0-9_]+-\d+/.test(key.toString())) return null;
 
       const createdDate = parseGvizDate(row.c[9]);
       const d1 = parseGvizDate(row.c[10]);

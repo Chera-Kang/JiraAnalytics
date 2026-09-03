@@ -177,12 +177,15 @@ const RoadmapPage = () => {
             <span style={{
               fontSize: '0.78rem',
               fontWeight: 600,
-              background: 'rgba(124, 58, 237, 0.12)',
-              color: 'var(--accent-secondary)',
+              background: 'rgba(16, 185, 129, 0.12)',
+              color: 'var(--success)',
               padding: '4px 10px',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px'
             }}>
-              차기 개발 예정
+              <CheckCircle2 size={13} /> 적용 완료 (구축 완료)
             </span>
           </div>
 
