@@ -44,7 +44,7 @@ Google Spreadsheet(GViz API)를 데이터 소스로 활용하여 별도의 복�
 
 ## 🚀 시작하기
 
-### 1. 의존성 설치
+### 1. 패키지 설치
 ```bash
 npm install
 ```
