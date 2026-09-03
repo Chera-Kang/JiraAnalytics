@@ -16,7 +16,7 @@ const TYPE_ORDER = ['Planning', 'Design', '스토리', 'Story', '작업', 'Task'
  * - 3개 차트 (우선순위, 유형, 담당자별 개수) 한 줄 균등 정렬
  * - [더보기 ➔] 클릭 시 세부 통계 심층 분석 & 이슈 탐색기 페이지로 이동
  */
-const DetailedStatsSection = ({ issues = [], globalYear = 'All', onNavigate }) => {
+const DetailedStatsSection = ({ issues = [], globalYear = 'All', onNavigate, isPrivacyMode = true }) => {
   // 상단 글로벌 연도(globalYear)에 맞춰 3가지 차트용 데이터를 가공합니다.
   const { priorityData, typeData, assigneeCountData } = useMemo(() => {
     let filteredIssues = issues;
@@ -130,7 +130,7 @@ const DetailedStatsSection = ({ issues = [], globalYear = 'All', onNavigate }) =
         <TypeChart data={typeData} />
 
         {/* 3. 담당자별 이슈 개수 막대 차트 (막대 클릭 시 개인 대시보드로 이동) */}
-        <AssigneeCountChart data={assigneeCountData} onNavigate={onNavigate} />
+        <AssigneeCountChart data={assigneeCountData} onNavigate={onNavigate} isPrivacyMode={isPrivacyMode} />
       </div>
     </div>
   );

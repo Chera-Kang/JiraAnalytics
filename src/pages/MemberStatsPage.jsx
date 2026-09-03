@@ -149,7 +149,7 @@ const getSelectStyle = () => ({
  * - 4단: 📈 2-Column 심층 분석 차트 (주력 업무 포지션 분포 & 수정버전별 추이)
  * - 5단: 📋 해당 사용자의 담당 이슈 목록 (검색, 필터, 소요일수, 모달 연동)
  */
-const MemberStatsPage = ({ issues = [], versions = [], initialUser = null, onNavigate }) => {
+const MemberStatsPage = ({ issues = [], versions = [], initialUser = null, onNavigate, isPrivacyMode = true }) => {
   // 유효 담당자 목록 및 전체 이슈 건수 순 정렬
   const availableAssignees = useMemo(() => {
     const map = new Map();
@@ -514,7 +514,11 @@ const MemberStatsPage = ({ issues = [], versions = [], initialUser = null, onNav
             </div>
             <div className="flex-col">
               <div className="flex-row align-center gap-2">
-                <h2 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                <h2
+                  className={isPrivacyMode ? 'privacy-blur' : ''}
+                  style={{ margin: 0, fontSize: '1.45rem', fontWeight: 700, color: 'var(--text-primary)' }}
+                  title={isPrivacyMode ? '마스킹 처리됨' : selectedUser}
+                >
                   {selectedUser}
                 </h2>
                 <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 500 }}>
@@ -1082,6 +1086,7 @@ const MemberStatsPage = ({ issues = [], versions = [], initialUser = null, onNav
 
                       <td style={{ padding: '10px 14px' }}>
                         <div
+                          className={isPrivacyMode ? 'privacy-blur' : ''}
                           style={{
                             maxWidth: '480px',
                             whiteSpace: 'nowrap',
@@ -1090,7 +1095,7 @@ const MemberStatsPage = ({ issues = [], versions = [], initialUser = null, onNav
                             color: 'var(--text-primary)',
                             fontWeight: 500
                           }}
-                          title={issue.title}
+                          title={isPrivacyMode ? '마스킹 처리됨' : issue.title}
                         >
                           {issue.title}
                         </div>
@@ -1209,6 +1214,7 @@ const MemberStatsPage = ({ issues = [], versions = [], initialUser = null, onNav
           issue={selectedModalIssue}
           onClose={() => setSelectedModalIssue(null)}
           onNavigate={onNavigate}
+          isPrivacyMode={isPrivacyMode}
         />
       )}
     </div>

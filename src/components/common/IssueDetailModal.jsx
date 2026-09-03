@@ -13,7 +13,7 @@ import { getPriorityColor, getTypeColor } from '../../utils/jiraColors';
  * - 연결된 이슈 정규식 파싱(단어 쪼개짐 버그 해결)
  * - 설명, 코멘트, 연결 이슈 항목 항상 표출
  */
-const IssueDetailModal = ({ issue, onClose, onNavigate }) => {
+const IssueDetailModal = ({ issue, onClose, onNavigate, isPrivacyMode = true }) => {
   // 타임라인 접기/펼치기 상태 (기본값: 닫힘)
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
 
@@ -253,7 +253,11 @@ const IssueDetailModal = ({ issue, onClose, onNavigate }) => {
           </div>
 
           {/* 2행: 이슈 제목 */}
-          <h2 style={{ margin: '2px 0 0 0', fontSize: '1.35rem', fontWeight: 700, lineHeight: 1.4, color: 'var(--text-primary)' }}>
+          <h2
+            className={isPrivacyMode ? 'privacy-blur' : ''}
+            style={{ margin: '2px 0 0 0', fontSize: '1.35rem', fontWeight: 700, lineHeight: 1.4, color: 'var(--text-primary)' }}
+            title={isPrivacyMode ? '마스킹 처리됨' : issue.title}
+          >
             {issue.title}
           </h2>
         </div>
@@ -302,10 +306,12 @@ const IssueDetailModal = ({ issue, onClose, onNavigate }) => {
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(37, 99, 235, 0.2)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(37, 99, 235, 0.08)'; }}
-                  title={`👤 ${issue.assignee} 님의 개인 기여 리포트 보기`}
+                  title={isPrivacyMode ? '마스킹 처리됨' : `👤 ${issue.assignee} 님의 개인 기여 리포트 보기`}
                 >
                   <User size={14} color="var(--accent-primary)" />
-                  <strong style={{ fontSize: '0.92rem', color: 'var(--accent-primary)' }}>{issue.assignee}</strong>
+                  <strong className={isPrivacyMode ? 'privacy-blur' : ''} style={{ fontSize: '0.92rem', color: 'var(--accent-primary)' }}>
+                    {issue.assignee}
+                  </strong>
                 </button>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', justifyContent: 'center' }}>
@@ -435,18 +441,21 @@ const IssueDetailModal = ({ issue, onClose, onNavigate }) => {
               <FileText size={16} color="var(--accent-primary)" />
               <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700 }}>이슈 설명 (Description)</h4>
             </div>
-            <div style={{
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '10px',
-              padding: '14px 16px',
-              fontSize: '0.88rem',
-              lineHeight: 1.6,
-              color: hasDescription ? 'var(--text-secondary)' : 'var(--text-muted)',
-              whiteSpace: 'pre-wrap',
-              maxHeight: '160px',
-              overflowY: 'auto'
-            }}>
+            <div
+              className={isPrivacyMode && hasDescription ? 'privacy-blur' : ''}
+              style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '10px',
+                padding: '14px 16px',
+                fontSize: '0.88rem',
+                lineHeight: 1.6,
+                color: hasDescription ? 'var(--text-secondary)' : 'var(--text-muted)',
+                whiteSpace: 'pre-wrap',
+                maxHeight: '160px',
+                overflowY: 'auto'
+              }}
+            >
               {hasDescription ? issue.description : '등록된 이슈 설명이 없습니다.'}
             </div>
           </div>
@@ -457,18 +466,21 @@ const IssueDetailModal = ({ issue, onClose, onNavigate }) => {
               <MessageSquare size={16} color="var(--accent-secondary)" />
               <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700 }}>코멘트 이력</h4>
             </div>
-            <div style={{
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '10px',
-              padding: '14px 16px',
-              fontSize: '0.86rem',
-              lineHeight: 1.6,
-              color: hasComments ? 'var(--text-secondary)' : 'var(--text-muted)',
-              whiteSpace: 'pre-wrap',
-              maxHeight: '150px',
-              overflowY: 'auto'
-            }}>
+            <div
+              className={isPrivacyMode && hasComments ? 'privacy-blur' : ''}
+              style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '10px',
+                padding: '14px 16px',
+                fontSize: '0.86rem',
+                lineHeight: 1.6,
+                color: hasComments ? 'var(--text-secondary)' : 'var(--text-muted)',
+                whiteSpace: 'pre-wrap',
+                maxHeight: '150px',
+                overflowY: 'auto'
+              }}
+            >
               {hasComments ? issue.comments : '등록된 코멘트가 없습니다.'}
             </div>
           </div>

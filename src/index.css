@@ -134,3 +134,16 @@ option {
 .gap-4 { gap: 1rem; }
 .gap-6 { gap: 1.5rem; }
 .w-full { width: 100%; }
+
+/* 프라이버시(민감 정보 블러 마스킹) 모드 스타일 */
+.privacy-blur {
+  filter: blur(5px);
+  user-select: none;
+  -webkit-user-select: none;
+  transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-block;
+}
+
+.privacy-blur:hover {
+  filter: blur(1px); /* 호버 시 작성자 본인은 살짝 확인 가능 */
+}

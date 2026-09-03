@@ -13,7 +13,8 @@ const MainPage = ({
   setGlobalYear,
   availableYears,
   issues,
-  onNavigate
+  onNavigate,
+  isPrivacyMode = true
 }) => {
   return (
     <div className="flex-col w-full animate-fade-in" style={{ gap: '3.5rem' }}>
@@ -30,6 +31,7 @@ const MainPage = ({
         issues={issues}
         globalYear={globalYear}
         onNavigate={onNavigate}
+        isPrivacyMode={isPrivacyMode}
       />
     </div>
   );

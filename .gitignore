@@ -22,6 +22,8 @@ client_secret*.json
 .clasprc.json
 gas/Code.js
 todo.txt
+upload.bat
+upload_gas.bat
 
 # Logs
 logs

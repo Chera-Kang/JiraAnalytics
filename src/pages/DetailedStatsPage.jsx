@@ -159,7 +159,7 @@ const getSelectStyle = (disabled = false) => ({
  * - 2-Column 차트: [좌측: 12시 시계방향 우선순위/유형 순서정렬 도넛 통합] vs [우측: 스프린트/담당자 전환 콤보 차트]
  * - 하단 이슈 탐색기: 헤더 내 검색창 배치, 소요일수 칼럼 추가, 20건 페이징, 상세 모달 연동
  */
-const DetailedStatsPage = ({ issues = [], versions = [], onNavigate }) => {
+const DetailedStatsPage = ({ issues = [], versions = [], onNavigate, isPrivacyMode = true }) => {
   // 필터 상태
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedVersion, setSelectedVersion] = useState('All');
@@ -1225,6 +1225,7 @@ const DetailedStatsPage = ({ issues = [], versions = [], onNavigate }) => {
                       {/* Summary */}
                       <td style={{ padding: '10px 14px' }}>
                         <div
+                          className={isPrivacyMode ? 'privacy-blur' : ''}
                           style={{
                             maxWidth: '480px',
                             whiteSpace: 'nowrap',
@@ -1233,7 +1234,7 @@ const DetailedStatsPage = ({ issues = [], versions = [], onNavigate }) => {
                             color: 'var(--text-primary)',
                             fontWeight: 500
                           }}
-                          title={issue.title}
+                          title={isPrivacyMode ? '마스킹 처리됨' : issue.title}
                         >
                           {issue.title}
                         </div>
@@ -1249,6 +1250,7 @@ const DetailedStatsPage = ({ issues = [], versions = [], onNavigate }) => {
                                 onNavigate('memberStats', { user: issue.assignee });
                               }
                             }}
+                            className={isPrivacyMode ? 'privacy-blur' : ''}
                             style={{
                               color: 'var(--text-primary)',
                               fontWeight: 600,
@@ -1270,7 +1272,7 @@ const DetailedStatsPage = ({ issues = [], versions = [], onNavigate }) => {
                               e.currentTarget.style.background = 'rgba(37, 99, 235, 0.06)';
                               e.currentTarget.style.color = 'var(--text-primary)';
                             }}
-                            title={`👤 ${issue.assignee} 님의 개인 기여 리포트 보기`}
+                            title={isPrivacyMode ? '마스킹 처리됨' : `👤 ${issue.assignee} 님의 개인 기여 리포트 보기`}
                           >
                             {issue.assignee}
                           </span>
@@ -1394,6 +1396,7 @@ const DetailedStatsPage = ({ issues = [], versions = [], onNavigate }) => {
           issue={selectedModalIssue}
           onClose={() => setSelectedModalIssue(null)}
           onNavigate={onNavigate}
+          isPrivacyMode={isPrivacyMode}
         />
       )}
     </div>

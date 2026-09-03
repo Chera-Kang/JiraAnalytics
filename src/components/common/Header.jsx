@@ -1,16 +1,24 @@
 import React from 'react';
-import { LayoutDashboard, RefreshCw, Clock, BarChart2, Lightbulb } from 'lucide-react';
+import { LayoutDashboard, RefreshCw, Clock, BarChart2, Lightbulb, Eye, EyeOff } from 'lucide-react';
 
 /**
  * [글로벌 상단 헤더 컴포넌트]
  * - 대시보드 로고 (클릭 시 메인 대시보드로 이동)
  * - 최종 동기화 시간 표출 (Last Updated)
  * - 데이터 갱신 (비활성화 버튼)
- * - 담당자별 통계 (버튼)
+ * - 보안 마스킹 모드 (Eye/EyeOff 토글)
  * - 심층 분석 (버튼)
  * - Next Plan 로드맵 (아이디어 이모지 버튼)
  */
-const Header = ({ lastUpdated, isSyncing: _isSyncing, onSync, currentView = 'dashboard', onNavigate }) => {
+const Header = ({ 
+  lastUpdated, 
+  isSyncing: _isSyncing, 
+  onSync, 
+  currentView = 'dashboard', 
+  onNavigate,
+  isPrivacyMode = true,
+  onTogglePrivacy
+}) => {
   // Format the date for display (년월일시분 까지 표기, 초 제외)
   let formattedDate = 'Unknown';
   if (lastUpdated) {
@@ -114,6 +122,35 @@ const Header = ({ lastUpdated, isSyncing: _isSyncing, onSync, currentView = 'das
         >
           <RefreshCw size={15} color="var(--text-muted)" />
           <span>데이터 갱신</span>
+        </button>
+
+        {/* 보안 마스킹 (프라이버시 블러) 모드 토글 버튼 */}
+        <button
+          onClick={onTogglePrivacy}
+          style={{
+            background: isPrivacyMode ? 'rgba(37, 99, 235, 0.08)' : 'var(--bg-secondary)',
+            color: isPrivacyMode ? 'var(--accent-primary)' : 'var(--text-secondary)',
+            border: isPrivacyMode ? '1px solid rgba(37, 99, 235, 0.3)' : '1px solid var(--border-color)',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            transition: 'all 0.2s ease',
+            fontSize: '0.85rem',
+            fontWeight: 600
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
+          title={isPrivacyMode ? '보안 마스킹 해제 (클릭 시 원본 텍스트 표시)' : '보안 마스킹 적용 (이슈 제목 및 담당자명 블러 보호)'}
+        >
+          {isPrivacyMode ? <EyeOff size={15} color="var(--accent-primary)" /> : <Eye size={15} />}
+          <span>{isPrivacyMode ? '마스킹 ON' : '마스킹 OFF'}</span>
         </button>
 
         {/* 심층 분석 버튼 */}
