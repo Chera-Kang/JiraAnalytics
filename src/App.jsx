@@ -336,7 +336,6 @@ function App() {
           availableYears={availableYears}
           issues={rawData.issues}
           onNavigate={handleNavigate}
-          isPrivacyMode={isPrivacyMode}
         />
       )}
 

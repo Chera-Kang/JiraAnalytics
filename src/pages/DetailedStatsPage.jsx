@@ -1222,7 +1222,7 @@ const DetailedStatsPage = ({ issues = [], versions = [], onNavigate, isPrivacyMo
                         </span>
                       </td>
 
-                      {/* Summary */}
+                      {/* Summary (철벽 블러) */}
                       <td style={{ padding: '10px 14px' }}>
                         <div
                           className={isPrivacyMode ? 'privacy-blur' : ''}
@@ -1234,13 +1234,13 @@ const DetailedStatsPage = ({ issues = [], versions = [], onNavigate, isPrivacyMo
                             color: 'var(--text-primary)',
                             fontWeight: 500
                           }}
-                          title={isPrivacyMode ? '마스킹 처리됨' : issue.title}
+                          title={isPrivacyMode ? '' : issue.title}
                         >
                           {issue.title}
                         </div>
                       </td>
 
-                      {/* Assignee (클릭 시 개인별 대시보드로 이동) */}
+                      {/* Assignee (닉네임 - 선명하게 유지 & 개인별 대시보드 이동) */}
                       <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
                         {issue.assignee && issue.assignee !== '미지정' && issue.assignee !== 'None' && issue.assignee !== '-' ? (
                           <span
@@ -1250,7 +1250,6 @@ const DetailedStatsPage = ({ issues = [], versions = [], onNavigate, isPrivacyMo
                                 onNavigate('memberStats', { user: issue.assignee });
                               }
                             }}
-                            className={isPrivacyMode ? 'privacy-blur' : ''}
                             style={{
                               color: 'var(--text-primary)',
                               fontWeight: 600,
@@ -1272,7 +1271,7 @@ const DetailedStatsPage = ({ issues = [], versions = [], onNavigate, isPrivacyMo
                               e.currentTarget.style.background = 'rgba(37, 99, 235, 0.06)';
                               e.currentTarget.style.color = 'var(--text-primary)';
                             }}
-                            title={isPrivacyMode ? '마스킹 처리됨' : `👤 ${issue.assignee} 님의 개인 기여 리포트 보기`}
+                            title={`👤 ${issue.assignee} 님의 개인 기여 리포트 보기`}
                           >
                             {issue.assignee}
                           </span>

@@ -4,13 +4,11 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 /**
  * [담당자별 이슈 개수 커스텀 툴팁]
  */
-const CustomTooltip = ({ active, payload, label, isPrivacyMode }) => {
+const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', boxShadow: 'var(--shadow-md)' }}>
-        <p style={{ margin: '0 0 4px 0', fontWeight: 600, color: 'var(--text-primary)' }}>
-          <span className={isPrivacyMode ? 'privacy-blur' : ''}>{label}</span>
-        </p>
+        <p style={{ margin: '0 0 4px 0', fontWeight: 600, color: 'var(--text-primary)' }}>{label}</p>
         <span style={{ color: 'var(--text-secondary)' }}>이슈 개수: </span>
         <strong style={{ color: 'var(--text-primary)' }}>{payload[0].value}건</strong>
         <div style={{ marginTop: '6px', fontSize: '0.72rem', color: 'var(--accent-primary)', fontWeight: 500 }}>
@@ -26,7 +24,7 @@ const CustomTooltip = ({ active, payload, label, isPrivacyMode }) => {
  * [담당자별 이슈 개수 수평 바 차트]
  * - 막대 클릭 시 해당 담당자의 개인별 맞춤 대시보드로 이동
  */
-const AssigneeCountChart = ({ data, onNavigate, isPrivacyMode = true }) => {
+const AssigneeCountChart = ({ data, onNavigate }) => {
   const count = data ? data.length : 0;
   const dynamicBarSize = count <= 3 ? 26 : count <= 6 ? 20 : 16;
 
@@ -59,22 +57,7 @@ const AssigneeCountChart = ({ data, onNavigate, isPrivacyMode = true }) => {
             type="category" 
             interval={0} 
             stroke="var(--text-muted)" 
-            tick={({ x, y, payload }) => (
-              <g transform={`translate(${x},${y})`}>
-                <text
-                  x={-6}
-                  y={0}
-                  dy={4}
-                  textAnchor="end"
-                  fill="var(--text-primary)"
-                  fontSize="0.85rem"
-                  className={isPrivacyMode ? 'privacy-blur' : ''}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {payload?.value}
-                </text>
-              </g>
-            )}
+            tick={{ fill: 'var(--text-primary)', fontSize: '0.85rem', cursor: 'pointer' }} 
             tickLine={false} 
             axisLine={false} 
             width={90}
@@ -86,7 +69,7 @@ const AssigneeCountChart = ({ data, onNavigate, isPrivacyMode = true }) => {
           />
           
           {/* 툴팁 및 바 */}
-          <Tooltip content={<CustomTooltip isPrivacyMode={isPrivacyMode} />} cursor={{ fill: 'rgba(37, 99, 235, 0.06)' }} />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(37, 99, 235, 0.06)' }} />
           <Bar 
             dataKey="value" 
             fill="#3b82f6" 

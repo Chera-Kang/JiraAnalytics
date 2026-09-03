@@ -514,11 +514,7 @@ const MemberStatsPage = ({ issues = [], versions = [], initialUser = null, onNav
             </div>
             <div className="flex-col">
               <div className="flex-row align-center gap-2">
-                <h2
-                  className={isPrivacyMode ? 'privacy-blur' : ''}
-                  style={{ margin: 0, fontSize: '1.45rem', fontWeight: 700, color: 'var(--text-primary)' }}
-                  title={isPrivacyMode ? '마스킹 처리됨' : selectedUser}
-                >
+                <h2 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                   {selectedUser}
                 </h2>
                 <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 500 }}>
@@ -1095,7 +1091,7 @@ const MemberStatsPage = ({ issues = [], versions = [], initialUser = null, onNav
                             color: 'var(--text-primary)',
                             fontWeight: 500
                           }}
-                          title={isPrivacyMode ? '마스킹 처리됨' : issue.title}
+                          title={isPrivacyMode ? '' : issue.title}
                         >
                           {issue.title}
                         </div>

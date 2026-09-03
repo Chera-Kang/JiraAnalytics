@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { X, User, Clock, RefreshCw, MessageSquare, FileText, Link2, GitFork, Calendar } from 'lucide-react';
+import { X, User, Clock, RefreshCw, MessageSquare, FileText, Link2, GitFork, Calendar, ShieldCheck } from 'lucide-react';
 import { getPriorityColor, getTypeColor } from '../../utils/jiraColors';
 
 /**
@@ -252,11 +252,11 @@ const IssueDetailModal = ({ issue, onClose, onNavigate, isPrivacyMode = true }) 
             </button>
           </div>
 
-          {/* 2행: 이슈 제목 */}
+          {/* 2행: 이슈 제목 (철벽 블러) */}
           <h2
             className={isPrivacyMode ? 'privacy-blur' : ''}
             style={{ margin: '2px 0 0 0', fontSize: '1.35rem', fontWeight: 700, lineHeight: 1.4, color: 'var(--text-primary)' }}
-            title={isPrivacyMode ? '마스킹 처리됨' : issue.title}
+            title={isPrivacyMode ? '' : issue.title}
           >
             {issue.title}
           </h2>
@@ -281,7 +281,7 @@ const IssueDetailModal = ({ issue, onClose, onNavigate, isPrivacyMode = true }) 
             borderRadius: '12px',
             padding: '18px 16px'
           }}>
-            {/* 1. 담당자 (클릭 시 개인별 대시보드로 이동) */}
+            {/* 1. 담당자 (닉네임 - 선명하게 유지 & 개인별 대시보드로 이동) */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '4px' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>담당자</span>
               {issue.assignee && issue.assignee !== '미지정' && issue.assignee !== 'None' && issue.assignee !== '-' ? (
@@ -306,10 +306,10 @@ const IssueDetailModal = ({ issue, onClose, onNavigate, isPrivacyMode = true }) 
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(37, 99, 235, 0.2)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(37, 99, 235, 0.08)'; }}
-                  title={isPrivacyMode ? '마스킹 처리됨' : `👤 ${issue.assignee} 님의 개인 기여 리포트 보기`}
+                  title={`👤 ${issue.assignee} 님의 개인 기여 리포트 보기`}
                 >
                   <User size={14} color="var(--accent-primary)" />
-                  <strong className={isPrivacyMode ? 'privacy-blur' : ''} style={{ fontSize: '0.92rem', color: 'var(--accent-primary)' }}>
+                  <strong style={{ fontSize: '0.92rem', color: 'var(--accent-primary)' }}>
                     {issue.assignee}
                   </strong>
                 </button>
@@ -441,23 +441,82 @@ const IssueDetailModal = ({ issue, onClose, onNavigate, isPrivacyMode = true }) 
               <FileText size={16} color="var(--accent-primary)" />
               <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700 }}>이슈 설명 (Description)</h4>
             </div>
-            <div
-              className={isPrivacyMode && hasDescription ? 'privacy-blur' : ''}
-              style={{
+            {isPrivacyMode ? (
+              <div style={{
+                position: 'relative',
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
                 borderRadius: '10px',
-                padding: '14px 16px',
-                fontSize: '0.88rem',
-                lineHeight: 1.6,
-                color: hasDescription ? 'var(--text-secondary)' : 'var(--text-muted)',
-                whiteSpace: 'pre-wrap',
-                maxHeight: '160px',
-                overflowY: 'auto'
-              }}
-            >
-              {hasDescription ? issue.description : '등록된 이슈 설명이 없습니다.'}
-            </div>
+                padding: '16px 20px',
+                overflow: 'hidden',
+                minHeight: '105px'
+              }}>
+                {/* 배경: 있어보이는 기술적인 더미 본문 텍스트 (블러 처리) */}
+                <div 
+                  aria-hidden="true"
+                  style={{
+                    filter: 'blur(5px)',
+                    userSelect: 'none',
+                    opacity: 0.3,
+                    fontSize: '0.85rem',
+                    lineHeight: 1.7,
+                    color: 'var(--text-secondary)'
+                  }}
+                >
+                  1. Feature Specification & Implementation Context<br />
+                  - Verified backend API integration schemas and validation boundaries.<br />
+                  - Applied asynchronous event handling and state caching pipelines.<br />
+                  2. Acceptance Criteria & Regression Verification Checklist
+                </div>
+
+                {/* 중앙 오버레이: 보안 비식별화 안내 배지 */}
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(15, 23, 42, 0.04)',
+                  backdropFilter: 'blur(1.5px)',
+                  padding: '0 16px'
+                }}>
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    background: 'var(--bg-primary)',
+                    border: '1px solid var(--border-color)',
+                    boxShadow: 'var(--shadow-sm)',
+                    borderRadius: '20px',
+                    padding: '8px 18px',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.82rem',
+                    fontWeight: 500,
+                    textAlign: 'center'
+                  }}>
+                    <ShieldCheck size={16} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
+                    <span>보안 규정에 따른 민감 정보이므로 상세 본문 내용은 비식별화 처리되었습니다.</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div
+                style={{
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '10px',
+                  padding: '14px 16px',
+                  fontSize: '0.88rem',
+                  lineHeight: 1.6,
+                  color: hasDescription ? 'var(--text-secondary)' : 'var(--text-muted)',
+                  whiteSpace: 'pre-wrap',
+                  maxHeight: '160px',
+                  overflowY: 'auto'
+                }}
+              >
+                {hasDescription ? issue.description : '등록된 이슈 설명이 없습니다.'}
+              </div>
+            )}
           </div>
 
           {/* 2. 코멘트 이력 (Comments) - 항상 표출 */}
@@ -466,23 +525,80 @@ const IssueDetailModal = ({ issue, onClose, onNavigate, isPrivacyMode = true }) 
               <MessageSquare size={16} color="var(--accent-secondary)" />
               <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700 }}>코멘트 이력</h4>
             </div>
-            <div
-              className={isPrivacyMode && hasComments ? 'privacy-blur' : ''}
-              style={{
+            {isPrivacyMode ? (
+              <div style={{
+                position: 'relative',
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
                 borderRadius: '10px',
-                padding: '14px 16px',
-                fontSize: '0.86rem',
-                lineHeight: 1.6,
-                color: hasComments ? 'var(--text-secondary)' : 'var(--text-muted)',
-                whiteSpace: 'pre-wrap',
-                maxHeight: '150px',
-                overflowY: 'auto'
-              }}
-            >
-              {hasComments ? issue.comments : '등록된 코멘트가 없습니다.'}
-            </div>
+                padding: '16px 20px',
+                overflow: 'hidden',
+                minHeight: '105px'
+              }}>
+                {/* 배경: 있어보이는 기술적인 더미 코멘트 텍스트 (블러 처리) */}
+                <div 
+                  aria-hidden="true"
+                  style={{
+                    filter: 'blur(5px)',
+                    userSelect: 'none',
+                    opacity: 0.3,
+                    fontSize: '0.85rem',
+                    lineHeight: 1.7,
+                    color: 'var(--text-secondary)'
+                  }}
+                >
+                  [2026-08-19 Staging Review] Deployment smoke test executed successfully.<br />
+                  [2026-08-20 Sign-off] PR approval confirmed by module maintainer. Ready for production release.
+                </div>
+
+                {/* 중앙 오버레이: 보안 비식별화 안내 배지 */}
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(15, 23, 42, 0.04)',
+                  backdropFilter: 'blur(1.5px)',
+                  padding: '0 16px'
+                }}>
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    background: 'var(--bg-primary)',
+                    border: '1px solid var(--border-color)',
+                    boxShadow: 'var(--shadow-sm)',
+                    borderRadius: '20px',
+                    padding: '8px 18px',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.82rem',
+                    fontWeight: 500,
+                    textAlign: 'center'
+                  }}>
+                    <ShieldCheck size={16} color="var(--accent-secondary)" style={{ flexShrink: 0 }} />
+                    <span>보안 규정에 따라 상세 코멘트 내역은 비식별화 처리되었습니다.</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div
+                style={{
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '10px',
+                  padding: '14px 16px',
+                  fontSize: '0.86rem',
+                  lineHeight: 1.6,
+                  color: hasComments ? 'var(--text-secondary)' : 'var(--text-muted)',
+                  whiteSpace: 'pre-wrap',
+                  maxHeight: '150px',
+                  overflowY: 'auto'
+                }}
+              >
+                {hasComments ? issue.comments : '등록된 코멘트가 없습니다.'}
+              </div>
+            )}
           </div>
 
           {/* 3. 연결된 이슈 & 서브태스크 - 항상 표출 */}
