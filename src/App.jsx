@@ -164,7 +164,7 @@ const fetchSheetData = async () => {
 
 function App() {
   const [rawData, setRawData] = useState({ issues: [], versions: [], globalStats: [] });
-  const [lastUpdated, setLastUpdated] = useState(null);
+  const [_lastUpdated, setLastUpdated] = useState(null);
   const [globalYear, setGlobalYear] = useState('All');
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -202,19 +202,8 @@ function App() {
   const [currentView, setCurrentView] = useState(getViewFromUrl);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  // 프라이버시(민감 정보 마스킹) 모드 상태 (기본값 ON: 외부 공개/데모 시 안전)
-  const [isPrivacyMode, setIsPrivacyMode] = useState(() => {
-    const saved = localStorage.getItem('jira_privacy_mode');
-    return saved !== null ? saved === 'true' : true;
-  });
-
-  const togglePrivacyMode = () => {
-    setIsPrivacyMode(prev => {
-      const next = !prev;
-      localStorage.setItem('jira_privacy_mode', String(next));
-      return next;
-    });
-  };
+  // 프라이버시(민감 정보 마스킹) 상시 적용 (외부 공개/데모 시 안전)
+  const isPrivacyMode = true;
 
   // 브라우저 탭 타이틀 동적 동기화
   useEffect(() => {
@@ -319,13 +308,9 @@ function App() {
   return (
     <div className="app-container" style={{ gap: '2.5rem' }}>
       <Header
-        lastUpdated={lastUpdated}
-        isSyncing={isSyncing}
         onSync={handleSync}
         currentView={currentView}
         onNavigate={handleNavigate}
-        isPrivacyMode={isPrivacyMode}
-        onTogglePrivacy={togglePrivacyMode}
       />
 
       {currentView === 'dashboard' && (
