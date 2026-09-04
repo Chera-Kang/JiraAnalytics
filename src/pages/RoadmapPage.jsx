@@ -253,7 +253,7 @@ const RoadmapPage = () => {
                 </h3>
               </div>
             </div>
-            {renderCompletedBadge('적용 완료 (구간 분석 엔진 탑재)')}
+            {renderCompletedBadge('적용 완료 (구간 분석)')}
           </div>
 
           <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.93rem', lineHeight: 1.6 }}>
