@@ -1,5 +1,7 @@
 # 📊 Jira Analytics Dashboard
 
+> 🌐 **Live Demo**: [https://jira-analytics.pages.dev](https://jira-analytics.pages.dev)
+
 Jira 이슈 데이터와 스프린트 품질 지표를 직관적으로 분석하고 추적하기 위한 대시보드 웹 애플리케이션입니다.  
 Google Spreadsheet(GViz API)를 데이터 소스로 활용하여 별도의 복잡한 백엔드 서버 없이 프론트엔드에서 실시간 다차원 집계 및 시각화를 제공합니다.
 
@@ -38,6 +40,7 @@ Google Spreadsheet(GViz API)를 데이터 소스로 활용하여 별도의 복�
 - **Data Visualization**: Recharts
 - **Icons**: Lucide React
 - **Data Source**: Google Spreadsheet (GViz Public JSON API)
+- **Deployment**: Cloudflare Pages
 - **Linter / Formatter**: Oxlint
 
 ---
