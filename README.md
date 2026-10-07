@@ -1,7 +1,7 @@
 # Jira Analytics Dashboard
 > **Jira 결함 라이프사이클 표준화 및 실시간 품질 지표 분석 대시보드**
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-jira--analytics.pages.dev-blue?style=for-the-badge&logo=cloudflarepages&logoColor=white)](https://jira-analytics.pages.dev)
+[![Web Dashboard](https://img.shields.io/badge/Web_Dashboard-jira--analytics.pages.dev-blue?style=for-the-badge&logo=cloudflarepages&logoColor=white)](https://jira-analytics.pages.dev)
 [![React](https://img.shields.io/badge/React-19.2-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Recharts](https://img.shields.io/badge/Charts-Recharts-22b5bf?style=flat-square)](https://recharts.org/)
@@ -10,7 +10,7 @@
 ---
 
 ## 📌 바로가기
-- 🌐 **실시간 웹 대시보드**: [jira-analytics.pages.dev](https://jira-analytics.pages.dev)
+- 🌐 **Jira Analytics 웹 대시보드**: [jira-analytics.pages.dev](https://jira-analytics.pages.dev)
 - 📁 **소스코드 저장소**: [GitHub Repository](https://github.com/Chera-Kang/JiraAnalytics)
 
 ---
@@ -96,7 +96,7 @@ sequenceDiagram
 
 ## 5. 데이터 보안 및 비식별화 설계
 
-외부 포트폴리오 공개 및 라이브 데모 운영 시 사내 기밀 유출을 방지하기 위해 클라이언트 단 비식별화 처리를 적용했습니다:
+외부 포트폴리오 공개 및 웹 대시보드 운영 시 사내 기밀 유출을 방지하기 위해 클라이언트 단 비식별화 처리를 적용했습니다:
 - **이슈 제목**: 시각적 레이아웃은 유지하되 텍스트 유출을 차단하는 가변 블러 마스킹 처리.
 - **설명문 및 코멘트**: 기술 명세 더미 텍스트 및 보안 가이드라인 안내 배지로 오버레이.
 - **수학적 무결성 보존**: 이슈 소요일수, Reopen Rate, 월별 트렌드 수치는 100% 정상 연산되도록 분리 설계.
