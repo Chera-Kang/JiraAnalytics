@@ -385,7 +385,7 @@ const IssueDetailModal = ({ issue, onClose, onNavigate, isPrivacyMode = true }) 
                     e.currentTarget.style.background = 'var(--bg-secondary)';
                   }
                 }}
-                title="이슈 라이프사이클 타임라인 펼치기/접기"
+                title="이슈 타임라인 펼치기/접기"
               >
                 <Calendar size={12} />
                 <span>타임라인 {isTimelineOpen ? '닫기 ▲' : '보기 ▼'}</span>
@@ -403,7 +403,7 @@ const IssueDetailModal = ({ issue, onClose, onNavigate, isPrivacyMode = true }) 
               marginTop: '6px'
             }}>
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                🕒 이슈 라이프사이클 타임라인
+                🕒 이슈 타임라인
               </span>
 
               <div style={{
